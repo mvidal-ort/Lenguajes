@@ -1,0 +1,91 @@
+PDefs.   Program ::= [Def] ;
+
+DUsing.      Def ::= "using" Id "::" Id ";" ;
+DUsingType.     Def ::= "using" Id "::" Type ";" ;
+DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+DFunInline.    Def    ::= "inline" Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+
+terminator Def "" ;
+
+ADecl.   Arg    ::= Type Id ;
+
+separator Arg "," ;
+
+SExp.        Stm ::= Exp ";" ;
+SDecls.      Stm ::= Type [Id] ";" ;
+SDeclsArray.  Stm ::= Type [Id] "[" Exp "]" ";" ;
+--SDeclsVector.   Stm ::= Id "<" Type ">" [Id] ";" ; 
+--SDeclsVectorPointer.   Stm ::= Id "<" Type ">" "&" [Id] ";" ;
+SInit.       Stm ::= Type Id "=" Exp ";" ;
+SConst.      Stm ::= "const" Type Id ";" ;
+SConstPointer.      Stm ::= "const" Type "&" Id ";" ;
+--SConstVector.      Stm ::= "const" Id "<" Type ">" [Id] ";" ;
+--SConstVectorPointer.      Stm ::= "const" Id "<" Type ">" "&" [Id] ";" ;
+SReturn.     Stm ::= "return" Exp ";" ;
+SReturnVoid. Stm ::= "return" ";" ;
+SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
+SDo.    Stm ::= "do" Exp ";" "while" "(" Exp ")" ;
+--SFor.   Stm ::= "for" "(" Stm Exp8 Exp11")" Stm ; --Muchos confictos...
+SBlock.      Stm ::= "{" [Stm] "}" ;
+SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+STypedef.  Stm ::= "typedef" Exp15 ";" ;
+
+terminator Stm "" ;
+
+ETrue.   Exp16  ::= "true" ;
+EFalse.  Exp16  ::= "false" ;
+EInt.    Exp16  ::= Integer ;
+EDouble. Exp16  ::= Double ;
+EStrings. Exp16 ::= [String] ;
+separator nonempty String "" ;
+EChar.   Exp16  ::= Char ;
+EVector1.   Exp16 ::= Id "<" Type ">" [Id] ;
+EVector2.   Exp16 ::= Id "<" Type ">" ;
+
+EIndexing1. Exp15 ::= Id "[" Exp16 "]" ; 
+Idq.    Idq ::= Id ;
+separator nonempty Idq "::" ;   
+EIndexing2. Exp15 ::= [Idq] ;
+EIndexing3. Exp15 ::= [Idq] Id ;
+
+EApp.    Exp15  ::= Id "(" [Exp] ")" ;
+EPoint.  Exp14  ::= Exp14 "." Exp15 ;
+EPointer.   Exp14  ::= Exp14 "->" Exp15 ;      
+EPIncr.  Exp14  ::= Exp15 "++" ;
+EPDecr.  Exp14  ::= Exp15 "--" ;
+EExpo.  Exp14  ::= "*" Exp15 ;
+EIncr.   Exp13  ::= "++" Exp14 ;
+EDecr.   Exp13  ::= "--" Exp14 ;
+EPot.   Exp13  ::= "!" Exp14 ;
+ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;
+EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
+EPorcent.    Exp12  ::= Exp12 "%"  Exp13 ;
+EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
+EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
+ELeftShift. Exp10  ::= Exp10 "<<"  Exp11 ;
+ERightShift. Exp10  ::= Exp10 ">>"  Exp11 ;
+ELt.     Exp9   ::= Exp9  "<"  Exp10 ;
+EGt.     Exp9   ::= Exp9  ">"  Exp10 ;
+ELtEq.   Exp9   ::= Exp9  "<=" Exp10 ;
+EGtEq.   Exp9   ::= Exp9  ">=" Exp10 ;
+EEq.     Exp8   ::= Exp8  "==" Exp9 ;
+ENEq.    Exp8   ::= Exp8  "!=" Exp9 ;
+EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
+EOr.     Exp3   ::= Exp3  "||" Exp4 ;
+EAss.    Exp2   ::= Exp3 "=" Exp2 ;
+EPlusAss.   Exp2   ::= Exp3 "+=" Exp2 ;
+EMinusAss.  Exp2   ::= Exp3 "-=" Exp2 ;
+Econditional.   Exp2    ::= Exp3 "?" Exp2 ":" Exp2 ;
+ETrow.  Exp1    ::=     "throw" Exp2 ;   
+internal ETyped. Exp16 ::= "(" Exp ":" Type ")" ;
+coercions Exp 16 ;
+
+separator Exp "," ;
+
+rules Type   ::= "bool" | "int" | "double" | "void" | "char" ;
+position token Id (letter (letter | digit | '_')*) ;
+separator nonempty Id "," ;
+
+comment "#" ;
+comment "//" ;
+comment "/*" "*/" ;

@@ -1,0 +1,24 @@
+data Bool = True | False
+
+data N = O | S <N>
+
+data List<a> =  Nil | Cons<a, List<a>>
+
+data Arbol<a,b> = Empty | Nodo <a, List<b>, List<Arbol<a,b>>>
+
+method empty<a,b> (arbol : Arbol<a,b>) returns (b : Bool)
+{
+    var other: Bool
+    case arbol of {
+          Empty -> b := True [];
+          Nodo [x, list, list2] ->
+                         case list of {
+                              Nil -> other := False [];
+                              Cons [y, ys] -> other := True []
+                         }
+                         b := False []
+          }
+}
+
+
+

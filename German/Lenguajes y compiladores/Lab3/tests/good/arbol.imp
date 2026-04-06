@@ -1,0 +1,27 @@
+data N = O | S <N>
+
+method suma (n : N, m : N) returns (r : N)
+{
+    var n1:N, m1:N
+    r,n1,m1 := O[],n,m
+    r := n1
+    while m1 is {
+          S[x] -> m1,r := x,S[r]
+          }
+}
+
+data Arbol<a,b> =  Null <a> | Node<b,Arbol<a,b>, Arbol<a,b>>
+
+method size<a,b> (a : Arbol<a,b>) returns (r : N)
+{
+    var b : Arbol<a,b>
+    var sizq: N, sder : N
+    r, b := O [], a
+    while b is {
+          Node [c, izq, der] ->
+               sizq := size(izq)
+               sder := size(der)
+               r := suma(r, sizq)
+               r := suma(r, sder)
+          }
+}

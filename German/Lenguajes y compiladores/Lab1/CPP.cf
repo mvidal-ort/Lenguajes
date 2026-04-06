@@ -1,0 +1,104 @@
+--Germán Gómez 319482
+PDefs.   Program ::= [Def] ;
+
+DUsing.      Def ::= "using" [Idq] ";" ;
+DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+DFunInline.    Def    ::= "inline" Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+terminator Def "" ;
+
+ADecl.   Arg    ::= Type Id ;
+ADecl2.   Arg    ::= "const" "vector" "<" Type ">" [Id]  ;
+ADecl3.   Arg    ::= "const" "vector" "<" Type ">" "&" [Id]  ;
+ADecl4.   Arg    ::= "const" Type Id ;
+ADecl5.   Arg    ::= "const" Type "&" Id ;
+ADecl6.   Arg    ::= "const" Id "&" [Id]  ;
+ADecl7.   Arg    ::= "const" Type "[" "]" RestArg ;
+RestArg1. RestArg ::= Id ;
+RestArg2. RestArg ::= "&" [Id] ;
+separator Arg "," ;
+
+SExp.        Stm ::= Exp ";" ;
+SDecls.      Stm ::= Type [Id] ";" ;
+SDeclsArray.  Stm ::= Type [Id] "[" Exp "]" ";" ;
+SInit.       Stm ::= Type Id "=" Exp ";" ;
+SConst.      Stm ::= "const" Type Id ";" ;
+SConstPointer.      Stm ::= "const" Type "&" Id ";" ;
+SConstVector.      Stm ::= "const" Id "<" Type ">" [Id] ";" ;
+SConstVectorPointer.      Stm ::= "const" Id "<" Type ">" "&" [Id] ";" ;
+SReturn.     Stm ::= "return" Exp ";" ;
+SReturnVoid. Stm ::= "return" ";" ;
+SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
+SDo.    Stm ::= "do" Exp ";" "while" "(" Exp ")" ;
+SFor.   Stm ::= "for" "(" Type Id "=" Exp ";" Exp8 ";" Exp11")" Stm ; 
+SBlock.      Stm ::= "{" [Stm] "}" ;
+SIf.     Stm ::= "if" "(" Exp ")" Stm RestIf ;
+SIfElse.    RestIf ::= "else" Stm ;
+SIFSimple.  RestIf ::= ;
+STypedef.  Stm ::= "typedef" RestoTypedef ";" ;
+STypedef2. RestoTypedef ::= Exp15 ;
+SStruct.    Stm ::= "struct" Id "{" RestStruct "}" ";" ;
+SStructArg. RestStruct ::= Type Id ";" ;
+SStructArgVector. RestStruct ::= Id "<" Type ">" ";" ;
+terminator Stm "" ;
+
+ETrue.   Exp16  ::= "true" ;
+EFalse.  Exp16  ::= "false" ;
+EInt.    Exp16  ::= Integer ;
+EDouble. Exp16  ::= Double ;
+EStrings. Exp16 ::= [String] ;
+separator nonempty String "" ;
+EChar.   Exp16  ::= Char ;
+EVector.   Idq ::= "vector" "<" VectorType ">" RestVector ;
+VectorType1. VectorType ::= Type ;
+VectorType2. VectorType ::= Id ;
+EVectorVar. RestVector ::= [Id] ;
+EVectorNoVar.  RestVector ::= ;
+
+EIndexing1. Exp15 ::= Id "[" Exp11 "]" ;
+Idq.    Idq ::= Id ;
+Idq2.   Idq ::= "vector" ;
+separator nonempty Idq "::" ;   
+EIds. Exp15 ::= [Idq] ;
+EIndexing3. Exp15 ::= [Idq] Id ;
+
+EApp.    Exp15  ::= Id "(" [Exp] ")" ;
+EPoint.  Exp14  ::= Exp14 "." Exp15 ;
+EPointer.   Exp14  ::= Exp14 "->" Exp15 ;      
+EPIncr.  Exp14  ::= Exp15 "++" ;
+EPDecr.  Exp14  ::= Exp15 "--" ;
+EExpo.  Exp14  ::= "*" Exp15 ;
+EIncr.   Exp13  ::= "++" Exp14 ;
+EDecr.   Exp13  ::= "--" Exp14 ;
+EPot.   Exp13  ::= "!" Exp14 ;
+ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;
+EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
+EPorcent.    Exp12  ::= Exp12 "%"  Exp13 ;
+EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
+EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
+ELeftShift. Exp10  ::= Exp10 "<<"  Exp11 ;
+ERightShift. Exp10  ::= Exp10 ">>"  Exp11 ;
+ELt.     Exp9   ::= Exp9  "<"  Exp10 ;
+EGt.     Exp9   ::= Exp9  ">"  Exp10 ;
+ELtEq.   Exp9   ::= Exp9  "<=" Exp10 ;
+EGtEq.   Exp9   ::= Exp9  ">=" Exp10 ;
+EEq.     Exp8   ::= Exp8  "==" Exp9 ;
+ENEq.    Exp8   ::= Exp8  "!=" Exp9 ;
+EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
+EOr.     Exp3   ::= Exp3  "||" Exp4 ;
+EAss.    Exp2   ::= Exp3 "=" Exp2 ;
+EPlusAss.   Exp2   ::= Exp3 "+=" Exp2 ;
+EMinusAss.  Exp2   ::= Exp3 "-=" Exp2 ;
+Econditional.   Exp2    ::= Exp3 "?" Exp2 ":" Exp2 ;
+ETrow.  Exp1    ::=     "throw" Exp2 ;   
+internal ETyped. Exp16 ::= "(" Exp ":" Type ")" ;
+coercions Exp 16 ;
+separator Exp "," ;
+
+rules Type   ::= "bool" | "int" | "double" | "void" | "char" ;
+position token Id (letter (letter | digit | '_')*) ;
+--token Id (letter (letter | digit | '_')*) ;
+separator nonempty Id "," ;
+
+comment "#" ;
+comment "//" ;
+comment "/*" "*/" ;

@@ -1,0 +1,12 @@
+data Bool = True | False
+data N = O | S <N>
+
+method not (b : Bool) returns (b2 : Bool)
+{
+}
+
+method suma (n : N, b : Bool) returns (r : N)
+{
+    -- wrong number of arguments types
+    r := not(b, n)
+} 

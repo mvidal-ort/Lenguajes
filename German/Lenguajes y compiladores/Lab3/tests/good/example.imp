@@ -1,0 +1,39 @@
+data N = O | S <N>
+
+method suma (n : N, m : N) returns (r : N)
+{
+    var n1:N, m1:N
+    r,n1,m1 := O[],n,m
+    while n1 is {
+          S[x] -> n1,r := x,S[r]
+          }
+    -- el while anterior equivale r := n1
+    while m1 is {
+          S[x] -> m1,r := x,S[r]
+          }
+}
+
+data List<a> =  Nil | Cons<a, List<a>>
+
+method length<a> (l : List<a>) returns (r : N)
+{
+    var l1 : List<a>
+    r,l1 := O [],l
+    while l1 is {
+          Cons[x,xs] ->  l1, r := xs, S[r]
+          }
+}
+
+method insert<a> (l : List<a>, e : a) returns (l2 : List<a>)
+{
+        l2 := Cons [e, l]
+}
+
+method sum (l : List<N>) returns (r : N)
+{
+    var l1:List<N>
+    r,l1 := O [],l
+    while l1 is {
+          Cons[x,xs] -> l1, r := xs, suma(x,r)
+          }
+}

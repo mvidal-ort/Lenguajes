@@ -1,0 +1,8 @@
+data N = O | S <N>
+
+method suma (n : N, m : N) returns (r : N)
+{
+    -- wrong number of arguments
+    r := O [n]
+} 
+

@@ -1,0 +1,9 @@
+data Bool = True | False
+data N = O | S <N>
+
+method suma (n : N, b : Bool) returns (r : N)
+{
+    -- wrong constructor arguments types
+    r := S [b]
+} 
+

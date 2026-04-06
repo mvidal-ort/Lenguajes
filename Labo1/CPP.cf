@@ -1,0 +1,93 @@
+PDefs.   Program ::= [Def] ;
+
+DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+
+terminator Def "" ;
+
+ADecl.   Arg    ::= Type Id ;
+
+separator Arg "," ;
+
+SExp.        Stm ::= Exp ";" ;
+SDecls.      Stm ::= Type [Id] ";" ;
+SInit.       Stm ::= Type Id "=" Exp ";" ;
+SReturn.     Stm ::= "return" Exp ";" ;
+SReturnVoid. Stm ::= "return" ";" ;
+SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
+SBlock.      Stm ::= "{" [Stm] "}" ;
+SIf. Stm ::= "if" "(" Exp ")" Stm ; -- tercera prueba, soporte para if sin else
+SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+
+STypedef. Stm ::= "typedef" Type Id ";" ; -- tercera prueba
+TId. Type ::= Id ; --tercera prueba 
+                    -- Las dos reglas anteriores permiten la linea: typedef size_type vec_sz; es decir alias de tipos
+                    -- estas reglas hacen que sea genérico el poder usar un id como type.
+                    -- podría haber modificado el rules Type mas abajo, agregando vec_sz, pero sería específico para este caso.
+                    -- y no genérico para cualquier alias de tipo
+
+terminator Stm "" ;
+
+ETrue.   Exp15  ::= "true" ;
+EFalse.  Exp15  ::= "false" ;
+EInt.    Exp15  ::= Integer ;
+EDouble. Exp15  ::= Double ;
+EString. Exp15  ::= String ;
+EId.     Exp15  ::= Id ; 
+
+EApp.    Exp15  ::= Id "(" [Exp] ")" ;
+EDot.    Exp15 ::= Exp15 "." Id ; -- tercera prueba, regla para aceptar punto
+EAppExp. Exp15 ::= Exp15 "(" [Exp] ")" ; -- tercera prueba, regla para llamada a metodo sobre expresion
+                                        -- las dos reglas anteriores permiten la linea: homework.push_back(x);
+
+EStringConcat. Exp15 ::= Exp15 String ; -- tercera prueba concatenacion de strings
+                                        -- "Enter all your homework grades, " "followed by end-of-file: ";  
+EIndex. Exp15 ::= Exp15 "[" Exp "]" ; -- tercera prueba, se explica mas abajo (median = ...)
+EPIncr.  Exp14  ::= Exp15 "++" ;
+EPDecr.  Exp14  ::= Exp15 "--" ;
+
+EIncr.   Exp13  ::= "++" Exp14 ;
+EDecr.   Exp13  ::= "--" Exp14 ;
+
+ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;
+EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
+EMod. Exp12 ::= Exp12 "%" Exp13 ; -- tercera prueba, se explica mas abajo (median = ...)
+EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
+EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
+ERightShift. Exp10 ::= Exp10 ">>" Exp11 ; -- para la segunda prueba
+ELeftShift. Exp10 ::= Exp10 "<<" Exp11 ; -- para la primera prueba
+ELt.     Exp9   ::= Exp9  "<"  Exp10 ;
+EGt.     Exp9   ::= Exp9  ">"  Exp10 ;
+ELtEq.   Exp9   ::= Exp9  "<=" Exp10 ;
+EGtEq.   Exp9   ::= Exp9  ">=" Exp10 ;
+EEq.     Exp8   ::= Exp8  "==" Exp9 ;
+ENEq.    Exp8   ::= Exp8  "!=" Exp9 ;
+EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
+EOr.     Exp3   ::= Exp3  "||" Exp4 ;
+EAss.    Exp2   ::= Exp3 "=" Exp2 ;
+ECond. Exp2 ::= Exp3 "?" Exp ":" Exp2 ; -- tercera prueba, se explica mas abajo (median = ...)
+
+-- Las pongo juntas para la tercera prueba la linea:
+-- median = size % 2 == 0 ? (homework[mid] + homework[mid-1]) / 2
+--	                       : homework[mid];
+-- EMod.   Exp12 ::= Exp12 "%" Exp13 ; -- operador modulo, al mismo nivel que * y /
+-- ECond.  Exp2  ::= Exp3 "?" Exp ":" Exp2 ; -- operador ternario, condicion decide en este caso que asiganarle a median si es par o no, 
+                                             -- aplica regla EAss.
+                                             -- se pone a nivel bajo similar a asignación
+-- EIndex. Exp15 ::= Exp15 "[" Exp "]" ; -- indexacion 
+-- cada una esta en el lugar correspondiente
+
+internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ;
+
+coercions Exp 15 ;
+
+separator Exp "," ;
+
+rules Type   ::= "bool" | "int" | "double" | "void" | "string" | "vector"; -- tercera prueba define vector como tipo simple
+
+token Id (letter (letter | digit | '_')*) ;
+
+separator nonempty Id "," ;
+
+comment "#" ;
+comment "//" ;
+comment "/*" "*/" ;

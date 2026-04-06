@@ -1,0 +1,3 @@
+-- not declared type variable
+data N = O | S <a>
+

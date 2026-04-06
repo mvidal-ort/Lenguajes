@@ -1,0 +1,16 @@
+data N = O | S <N>
+data Bool = True | False
+data List<a> =  Nil | Cons<a, List<a>>
+
+method headzero (xs : List<N>) returns (r : Bool)
+{
+    case xs of {
+          Cons[n, ys] ->
+                  case n of {
+                       O  -> r := True [];
+                       S [m] -> r := False []
+                  };
+          Nil -> r := False []
+          }
+}
+

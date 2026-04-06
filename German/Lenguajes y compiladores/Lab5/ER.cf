@@ -1,0 +1,22 @@
+Prog.   Prog ::= [Alfabeto][ExpReg] ;
+terminator Alfabeto "" ;
+terminator ExpReg "" ;
+
+Alfabeto.   Alfabeto ::= AlfaName "=" [Symbol] ;
+separator nonempty Symbol "," ;
+
+ExpReg.   ExpReg ::= ExpName "=" Exp ":" AlfaName ;
+
+Evacio.    Exp4 ::= "{}" ;
+EPalabraVacia.    Exp4 ::= "eps" ; 
+Esymbol.    Exp4 ::= Symbol ;
+EConcat.    Exp3 ::= Exp3 Exp4 ;
+EUnion.    Exp2 ::= Exp2 "|" Exp3 ;
+EIter.    Exp1 ::= Exp2 "*" ;
+
+internal ETyped. Exp4 ::= "(" Exp ":" AlfaName ")" ;
+coercions Exp 4 ;
+
+token AlfaName (letter (letter | digit | '_')*) ;
+token ExpName (letter (letter | digit | '_')*) ;
+token Symbol letter ;

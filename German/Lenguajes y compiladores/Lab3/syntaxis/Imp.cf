@@ -1,0 +1,49 @@
+Prog.        Prog        ::= [Def];
+separator Def "";
+
+DataType.    Def         ::= "data" Id Tps "=" [Decl];
+Method.      Def         ::= "method" Id Tps "(" [Param] ")" "returns" "(" Param ")" "{" [Stat] "}";
+
+separator nonempty Decl "|";
+separator Stat "";
+separator Param ",";
+
+TypeParEty.     Tps      ::= ; 
+TypeParSeq.     Tps      ::= "<" [Id] ">"; 
+separator nonempty Id ",";
+
+Decl.           Decl     ::= Id Types;
+
+TypesEty.       Types    ::= ;
+TypesSeq.       Types    ::= "<" [Type] ">";
+separator nonempty Type ",";
+
+Type.           Type     ::= Id Types;
+
+internal TypeVar. Type ::= Id;
+
+Param.          Param    ::= Id ":" Type;
+
+StmBlock.       Stat     ::= "{" [Stat] "}";
+StmVarDecl.     Stat     ::= "var" [Param];
+StmAssignEty.   Stat     ::= ":=";
+StmAssignNEty.  Stat     ::= [Id] ":=" [Exp];
+StmCase.        Stat     ::= "case" Id "of" "{" [Branch] "}";
+StmWhile.       Stat     ::= "while" Id "is" "{" [Branch] "}";
+
+separator Branch ";";
+separator Exp ",";
+
+Branch.         Branch   ::= Left "->" [Stat];
+
+LeftConstrEty.  Left     ::= Id;
+LeftConstr.     Left     ::= Id "[" [Id] "]";
+
+ExpVar.         Exp      ::= Id;
+ExpConstr.      Exp      ::= Id "[" [Exp] "]";
+ExpCall.        Exp      ::= Id "(" [Exp] ")";
+
+comment "--" ;
+comment "{--" "--}" ;
+
+token Id (letter (letter | digit | '_')*) ;

@@ -1,0 +1,7 @@
+data N = O | S <N>
+
+-- repeated parameters
+method suma (n : N, n : N) returns (r : N)
+{
+}
+

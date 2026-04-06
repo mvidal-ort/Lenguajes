@@ -1,0 +1,36 @@
+# Nombre del ejecutable final
+EXECUTABLE = typechecker
+
+# Archivos fuente
+SOURCES = AbsER.hs LexER.hs ParER.hs SkelER.hs ErrM.hs Env.hs TypeChecker.hs
+
+# Módulos generados automáticamente por BNFC
+BNFC_OBJS = AbsER.o LexER.o ParER.o ErrM.o SkelER.o
+
+# Módulos adicionales
+CUSTOM_OBJS = Env.o TypeChecker.o
+
+# Todos los archivos objeto
+OBJECTS = $(BNFC_OBJS) $(CUSTOM_OBJS)
+
+# Compilador y flags
+HC = ghc
+GHCFLAGS = -Wall -fno-warn-unused-imports
+
+# Regla principal para construir el ejecutable
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(HC) $(GHCFLAGS) -o $(EXECUTABLE) $(OBJECTS)
+
+# Compilación de archivos fuente individuales
+%.o: %.hs
+	$(HC) $(GHCFLAGS) -c $<
+
+# Limpieza de archivos generados
+clean:
+	rm -f $(EXECUTABLE) $(OBJECTS) *.hi *.o
+
+# Comando para probar el typechecker (opcional)
+test: $(EXECUTABLE)
+	./$(EXECUTABLE) < test_input.txt

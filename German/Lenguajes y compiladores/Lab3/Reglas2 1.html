@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>Reglas2.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<h1>Environment (ambiente-contexto)</h1>
+
+<p>El laboratorio 2 tenia un environment que era una tupla (Σ, Γ) de firma de funciones y declaraciones de variables</p>
+
+<p>Ahora el lab 3 va tener una quintupla (δ, π, κ, σ, γ) con</p>
+
+<ul>
+<li>δ (delta) : la informacion de los parametros de tipos (o variables de tipos) de los data types declarados</li>
+</ul>
+
+<p>Ejemplo : </p>
+
+<pre><code>data N = O | S &lt;N&gt;
+data List&lt;a&gt; =  Nil | Cons &lt;a, List&lt;a&gt;&gt;
+data Arbol&lt;a,b&gt; = Hoja&lt;a&gt; | NodoInterior&lt;b,Arbol&lt;a,b&gt;,Arbol&lt;a,b&gt;&gt;
+</code></pre>
+
+<p>En este ejemplo seria el siguiente mapeo o diccionario</p>
+
+<pre><code>δ = [N -&gt; &lt;&gt;, List -&gt; &lt;a&gt;, Arbol -&gt; &lt;a,b&gt;]
+</code></pre>
+
+<ul>
+<li><p>π (pi) : es una lista de parametros de tipos (variables de tipo), sin variables repetidas
+       , como por ejemplo: <code>&lt;&gt;</code> ,<code>&lt;a&gt;</code> y <code>&lt;a,b&gt;</code>
+       guarda el contexto de las variables de tipo que tienen sentido en un momento dado</p></li>
+<li><p>κ (kappa) : es la informacion de todos los constructores que haya declarados
+          es una mapeo o diccionario que para cada constructor me devuelva la informacion 
+          relacionada a ese constructor, basicamente la lista de parametros del constructor y 
+          ademas a que tipo al que pertence el constructor.</p>
+
+<p>En el ejemplo anterior para seria el siguiente mapeo:</p>
+
+<pre><code>κ = [ O -&gt; ([],N)
+    , S -&gt; ([N],N)
+    , Nil -&gt; ([], List)
+    , Cons -&gt; ([a, List&lt;a&gt;], List)
+    ]
+</code></pre></li>
+<li><p>σ (sigma) : es la informacion relacionada a los metodos (o funciones)
+          es un mapeo entre nombres de metodos y les asocia los tipos de los parametros del metodo,
+          los tipos de que retorna, y si es polimorfica la lista de parametros de tipos</p>
+
+<pre><code>method suma (n : N, m : N) returns (r : N)
+method length&lt;a&gt; (l : List&lt;a&gt;) returns (r : N, m : N)
+
+
+σ = [ suma -&gt; (&lt;&gt;, [N,N], [N])
+    , length -&gt; (&lt;a&gt;, [List&lt;a&gt;], [N, N])
+    ]
+</code></pre></li>
+<li><p>γ (gamma) : es la informacion de tipo de las variables
+          y como Imp tiene bloques de declaraciones de variables va ser una lista
+          de mapeos o diccionarios, igual que en el laboratorio 2</p></li>
+</ul>
+
+<h1>Reglas para contextos de parametros de tipo (variables de tipo):</h1>
+
+<p>Es una simple lista de variables o parametros de tipo (un π)</p>
+
+<h1>Reglas para tipos validos:</h1>
+
+<p>Juicio que chequea cuando algo es un tipo validos de Imp. </p>
+
+<p>Ejemplo:</p>
+
+<pre><code>data N = O | S &lt;N&gt;
+data List&lt;a&gt; =  Nil | Cons &lt;a, List&lt;a&gt;&gt;
+data Arbol&lt;a,b&gt; = Hoja&lt;a&gt; | NodoInterior&lt;b,Arbol&lt;a,b&gt;,Arbol&lt;a,b&gt;&gt;
+
+... 
+method pepe&lt;a,b&gt; (...) returns () {
+...
+var z : a                   ( π = [a, b], δ = [N -&gt; &lt;&gt;, List -&gt; &lt;a&gt;, Arbol -&gt; &lt;a,b&gt;] )
+var x : N 
+var ys : List&lt;N&gt;            ( δ = [N -&gt; &lt;&gt;, List -&gt; &lt;a&gt;, Arbol -&gt; &lt;a,b&gt;] )
+var ps : List&lt;a&gt;            ( π = [a, b], δ = [N -&gt; &lt;&gt;, List -&gt; &lt;a&gt;, Arbol -&gt; &lt;a,b&gt;] )
+var zs : List&lt;List&lt;a&gt;&gt; 
+var arbol : Arbol&lt;N,List&lt;N&gt;&gt;
+...
+-- ejmplos de tipos incorrectos
+var r : c  -- esto esta mal porque el parametro de tipo c no esta declarada en π ni en δ
+var ys : List&lt;N,N&gt; -- esto mal porque listas solo tiene una parametro polimorfico
+}
+</code></pre>
+
+<p>Por ejemplo para chequear que <code>Arbol&lt;N,List&lt;N&gt;&gt;</code> es un tipo valido, vemos que esta aplicado
+  a una cantidad de tipos igual a los parametros de tipos declarada en su de su defincion (<code>&lt;a,b&gt;</code>), en este caso 2,
+  y luego recursivamente chequea que cada argumento sea a su vez un tipo valido.</p>
+
+<h2>caso variable de tipo (o parametro de tipo) "a"</h2>
+
+<pre><code>-------------- a ∈ π
+(δ , π) ⊢ a type
+</code></pre>
+
+<h2>caso de un tipo concreto llamado "t"</h2>
+
+<pre><code>(δ , π) ⊢ αi type (i=1,..,n)                        (ejemplo : chequeo que N es un tipo valido)
+-----------------------------   t declarado en δ    (          List declardo en el mapeo δ    )
+ (δ , π) ⊢ t &lt; α1..αn &gt; type    |δ(t)| = n          (          | &lt;a&gt; | = 1                    )
+         ^     ^
+         |     | ejemplo
+        List &lt; N &gt;
+</code></pre>
+
+<p>Ejemplo:</p>
+
+<pre><code>                        ----------------   N declardo en δ 
+                        (δ , π) ⊢ N type    |δ(N) = &lt;&gt;| = 0
+------------------------------------------------------------------------   List declardo en δ 
+(δ = [N -&gt; &lt;&gt;, List -&gt; &lt;a&gt;, Arbol -&gt; &lt;a,b&gt;], π = [a, b]) ⊢ List &lt;N&gt; type   | δ(List) = &lt;a&gt; | = 1
+</code></pre>
+
+<h1>Reglas de tipado para expresiones (bien tipadas):</h1>
+
+<h2>caso variable llamada "x"</h2>
+
+<pre><code>-------------------------- x declarada en γ
+(δ, π, κ, σ, γ) ⊢ x : γ(x)
+</code></pre>
+
+<h2>caso de un constructor llamado "c"</h2>
+
+<pre><code>                                                                                     data type 
+                                                                                             |
+(δ, π, κ, σ, γ) ⊢ ei : βi  (i=1..n)                                                          V
+-----------------------------------------     c declarado en κ,              κ(c) = (α1..αn, t)
+ (δ, π, κ, σ, γ) ⊢ c [e1..en] : t ((δ(t)) θ)  βi sean "instancias" de los αi,            ^
+                                              esto es que exista una substitucion θ      |
+                                              que los unifque (βi = αi θ)                | 
+                                                                                         |
+                                               lista de parametros de tipo del constructor c
+</code></pre>
+
+<p>Ejemplo 1 (con polimorfismo):</p>
+
+<pre><code>porque (x -&gt; N) esta en γ      porque (xs -&gt; List&lt;N&gt;) esta en γ
+ ------------------------     ----------------------------------
+ (δ, π, κ, σ, γ) ⊢ x : N      (δ, π, κ, σ, γ) ⊢ xs : List&lt;N&gt;
+----------------------------------------------------------------------
+( δ = [List -&gt; &lt;a&gt;]
+, π
+, κ = [Cons -&gt; ([a, List&lt;a&gt;]], List)..]
+, σ
+, γ = [x -&gt; N, xs -&gt; List&lt;N&gt;]        )  ⊢  Cons [x, xs] : List &lt;N&gt;
+</code></pre>
+
+<p>Tenemos que ver que:
+ * Cons este declarado en κ , haciendo el lookup κ (Cons) = ([α1 = a, α2 = List<a>]], List)
+ *  βi sean "instancias" de los αi, en este caso:
+    *  β1 = N sean "instancias" de los α1 = a, es igual si cambiamos a por N, teniendo que sustitucion θ = (a -> N)
+    *  β2 = List<N> sean "instancias" de los α2 = List<a>, es igual si cambiamos a por N, teniendo que sustitucion θ = (a -> N)
+ * Para ver el tipo de la expresion resutlante tengo que hacer δ(List) = <a> , y esto le aplico la sustitucion  θ que hallamos, o sea a <a> 
+   le cambiamos a por N y me queda <N></p>
+
+<p>Ejemplo 2 (no polimorfico): </p>
+
+<pre><code>          ----------------------------------- r esta declarada en γ
+          (δ, π, κ, σ, γ = [r -&gt; N]) ⊢ r : N = β1
+--------------------------------------------------
+( δ = [N -&gt; &lt;&gt;]
+, π
+, κ = [S -&gt; ([N], N)]
+, σ
+, γ = [r -&gt; N]   )     ⊢  S [r] :  N
+</code></pre>
+
+<p>Chequeo que :
+  * S este declarado en κ, y hago el lookup κ(S) = ([N], N) 
+  * β1 = N sea una instancia de α1 = N, es igual como no hay variables la sustitucion es vacia
+  * para ver el tipo de la expresion S[r] lo que es hacer δ(N) = &lt;>, que aplicando la sustitucion vacia me queda igual &lt;></p>
+
+<h2>caso de de la aplicacion de un metodo "m"</h2>
+
+<pre><code>(δ, π, κ, σ, γ) ⊢ ei : βi (i=1..n)
+---------------------------------------   m declarado en σ, σ(m) = (_ , αI1..αIn , αr)
+ (δ, π, κ, σ, γ) ⊢ m (e1..en) : αr θ           βi = αIi θ
+</code></pre>
+
+<p>Ejemplo:</p>
+
+<pre><code>-------------------------------------------------------------------------------------------- xs declarada γ
+(δ = [List -&gt; &lt;a&gt;], π, κ, σ = [length -&gt; (&lt;a&gt;, [List&lt;a&gt;], N)], γ = [xs -&gt; List&lt;N&gt;]) ⊢ xs : List&lt;N&gt;
+------------------------------------------------------------------------------------------------------------ length esta declarado en δ
+(δ = [List -&gt; &lt;a&gt;], π, κ, σ = [length -&gt; (&lt;a&gt;, [List&lt;a&gt;], N)], γ = [xs -&gt; List&lt;N&gt;]) ⊢ length xs : N (a -&gt; N)
+
+Ahora vemos que     βi = αIi θ:
+tengo que ver que  List&lt;N&gt; = List&lt;a&gt; para que unifiquen tengo que sustituir θ = (a -&gt; N)
+
+
+-------------------------------------------------------------------------------------------- xs declarada γ
+(δ = [List -&gt; &lt;a&gt;], π, κ, σ = [length -&gt; (&lt;a&gt;, [List&lt;a&gt;], N)], γ = [xs -&gt; List&lt;N&gt;]) ⊢ xs : List&lt;N&gt;
+------------------------------------------------------------------------------------------------------------ head esta declarado en δ
+(δ = [List -&gt; &lt;a&gt;], π, κ, σ = [head -&gt; (&lt;a&gt;, [List&lt;a&gt;], a)], γ = [xs -&gt; List&lt;N&gt;]) ⊢ head xs : a (a -&gt; N) = N
+
+Ahora vemos que     βi = αIi θ:
+tengo que ver que  List&lt;N&gt; = List&lt;a&gt; para que unifiquen tengo que sustituir θ = (a -&gt; N)
+</code></pre>
+
+<h1>Reglas para secuencias de sentencias (validas) ((valid) statement sequences):</h1>
+
+<h2>declaracion de variables</h2>
+
+<pre><code>(δ, π, κ, σ, (γs · (γ′ + [x1 -&gt; α1,..,xn -&gt; αn]) ⊢ s1..sm valid    (δ, π) ⊢ αi type (i=1..n) 
+------------------------------------------------------------------------------------------ 
+(δ, π, κ, σ, (γs · γ′)) ⊢ (var x1:α1..xn:αn) s1..sm valid
+</code></pre>
+
+<h2>asignacion</h2>
+
+<pre><code>(δ, π, κ, σ, γ) ⊢ ei : βi (i=1..n)    (δ, π, κ, σ, γ) ⊢ s1..sm valid
+--------------------------------------------------------------------  xi declaradas en γ
+(δ, π, κ, σ, γ) ⊢ (x1..xn:=e1..en) s1..sm valid                       βi = γ(xi)
+</code></pre>
+
+<h2>case</h2>
+
+<pre><code>(δ, π, κ, σ, (γs · γ + xs_i -&gt; α_i θ) ⊢ stms_i valid (i=1..n)     (δ, π, κ, σ, γs · γ) ⊢ s1..sm valid
+--------------------------------------------------------------------------------------------------   x declarada en γ, γ(x) = t β1..βr,
+(δ, π, κ, σ, γs · γ) ⊢ case x of c1 [xs_1] -&gt; stms_1                                                 ci declarados en κ, (∀i=1..n) κ(ci) = (αs_i, t)
+                                     ...                                                             |xs_i| = |αs_i| (i = 1..n)
+                                 cn [xs_n] -&gt; stms_n    s1..sm valid                                 t declarado en δ, δ(t) = pi, (∀i=1..r) βi = pi θ
+</code></pre>
+
+<p>Ejemplo:</p>
+
+<pre><code>             ...
+----------------------------------------     --------------------------------------------------------------
+(δ, π, κ, σ, (γs · γ)) ⊢ z := O [] valid     (δ, π, κ, σ, γs · γ + { y -&gt; N, ys -&gt; List&lt;N&gt;}) ⊢ z := y valid
+--------------------------------------------------------------------------------------------------           x declarada en γ, γ(x) = List &lt;N&gt;
+(δ = {List -&gt; [a], N -&gt; []}                                                                                  Nil y Cons declarados κ, (∀i=1..n) κ(Cons) = ([a, List&lt;a&gt;], List)
+, π                                                                                                                                             κ(Nil) = ([], List)
+, κ = {Nil -&gt; ([], List), Cons -&gt; ([a, List&lt;a&gt;], List), O -&gt; ([], N), S -&gt; ([N], N)}                         |[]| = |[]| (Nil) y |[y , ys]| = |[a, List&lt;a&gt;]| (Cons)
+, γs · γ = {x : List &lt;N&gt;, z : N}) ⊢ case x of Null [] -&gt; z := O []                                           δ(List) = [a],  N = a (θ = {a -&gt; n})
+                                              Cons [y , ys] -&gt; z := y valid
+</code></pre>
+
+<h2>while</h2>
+
+<p>While is similar to case</p>
+
+<h2>blocks</h2>
+
+<p>Como en el laboratorio 2 anterior, agrega un mapeo vacio en el tope del stack de contextos de variables para tipar los statements del bloque</p>
+
+<pre><code>(δ, π, κ, σ, γs · {}) ⊢ r1..rn valid      (δ, π, κ, σ, γs) ⊢ s1..sm valid
+-------------------------------------------------------------------------------------------
+(δ, π, κ, σ, γs) ⊢ {r1..rn} s1..sm valid
+</code></pre>
+
+<h1>Reglas para un programa</h1>
+
+<h2>recolectar el environment de datas y funciones</h2>
+
+<pre><code>---------------- programa vacio ({} representa un mapeo/diccionario vacio)
+ ⊢ ({}, {}, {})
+
+         prog ⊢ (δ, κ, σ)
+---------------------------------------------------------------------------------------------------------------- metodo, m no este ya definida en σ
+  method m &lt;p1..pk&gt; (x1:α1..xn:αn) returns (r:β) {stms} prog ⊢ (δ, κ, σ + (m -&gt; ((p1..pk,α1..α1n,β)))             p1..pk sin repetidos
+                                                                                                                  x1..xn r sin repetidos
+
+         prog ⊢ (δ, κ, σ)
+-------------------------------------------------------------------------------------------------------------- data , d no este ya definida en δ
+  data d &lt;p1..pk&gt; = c1 &lt;ts1&gt; |..| cn &lt;tsn&gt;  prog ⊢ (δ + {d -&gt; p1..pk}, κ + {c1 -&gt; (ts1, d)),..,cn -&gt; (tsn, d)}, σ)    ni tampoco sus constructores c1..cn en κ
+                                                                                                                      c1..cn sin repetidos
+                                                                                                                      p1..pk sin repetidos
+</code></pre>
+
+<h2>chequear los tipos de todos los data</h2>
+
+<pre><code>(δ, π = &lt;p1..pk&gt;) ⊢ tsi type (i = 1..n)     (chequeo que todos los tipos sean validos)
+------------------------------------------------------------------------------ data
+(δ, κ, σ) ⊢ data d &lt;p1..pk&gt; = c1 &lt;ts1&gt; |..| cn &lt;tsn&gt;  OK
+</code></pre>
+
+<h2>chequear los stms y tipos de todos los metodos</h2>
+
+<pre><code>(δ, π = &lt;p1..pk&gt;, κ, σ, {x1-&gt;α1..xn-&gt;αn r-&gt;β}) ⊢ stms valid    (δ, &lt;p1..pk&gt;) ⊢ αi (i=1..n) type     (δ, &lt;p1..pk&gt;) ⊢ β type 
+---------------------------------------------------------------------------------------------------------------------------- metodo
+(δ, κ, σ) ⊢ method m &lt;p1..pk&gt; (x1:α1..xn:αn) returns (r:β) {stms} OK
+</code></pre>
+
+<h2>resumiendo todos los pasos anteriores</h2>
+
+<pre><code>prog ⊢ (δ, κ, σ)    (δ, κ, σ) ⊢ d1..dn OK
+-----------------------------------------
+           prog d1..dn valid
+</code></pre>
+
+</body>
+</html>

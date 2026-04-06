@@ -1,0 +1,6 @@
+-- not defined types a, N
+method suma (n : a, m : N) returns (r : N)
+{
+    var n1:N, m1:N
+}
+

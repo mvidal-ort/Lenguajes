@@ -1,0 +1,19 @@
+data List<a> =  Nil | Cons<a, List<a>>
+
+method append<a> (l : List<a>, l2 : List<a>) returns (l3 : List<a>)
+{
+    var aux : List<a>
+    l3,aux := l2, l
+    while aux is {
+          Cons[x,xs] ->  aux, l3 := xs, Cons [x, l3]
+          }
+}
+
+method concat<a>( l : List<List<a>> ) returns (l2 : List<a>)
+{
+        var l3 : List <List<a>>
+        l3, l2 := l, Nil []
+        while l3 is {
+              Cons[x, xs] -> l3, l2 := xs, append(l2,x)
+        }
+}
