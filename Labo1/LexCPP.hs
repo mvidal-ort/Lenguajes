@@ -43,84 +43,85 @@ alex_deflt = AlexA#
 
 alex_accept = Data.Array.listArray (0 :: Int, 65)
   [ AlexAccNone
+  , AlexAcc 13
   , AlexAcc 12
   , AlexAcc 11
   , AlexAcc 10
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccSkip
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccSkip
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccSkip
+  , AlexAccNone
   , AlexAcc 9
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccSkip
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccSkip
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccSkip
   , AlexAccNone
   , AlexAcc 8
   , AlexAccNone
+  , AlexAccNone
   , AlexAcc 7
-  , AlexAccNone
-  , AlexAccNone
   , AlexAcc 6
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
+  , AlexAccNone
   , AlexAcc 5
   , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
-  , AlexAccNone
   , AlexAcc 4
-  , AlexAccNone
   , AlexAcc 3
+  , AlexAccNone
   , AlexAcc 2
   , AlexAccNone
   , AlexAcc 1
-  , AlexAccNone
-  , AlexAcc 0
   , AlexAccSkip
   , AlexAccNone
   , AlexAccNone
   , AlexAccNone
   , AlexAccNone
-  , AlexAccNone
+  , AlexAcc 0
   ]
 
-alex_actions = Data.Array.array (0 :: Int, 13)
-  [ (12,alex_action_4)
+alex_actions = Data.Array.array (0 :: Int, 14)
+  [ (13,alex_action_4)
+  , (12,alex_action_4)
   , (11,alex_action_4)
   , (10,alex_action_4)
-  , (9,alex_action_4)
+  , (9,alex_action_9)
   , (8,alex_action_9)
-  , (7,alex_action_9)
-  , (6,alex_action_8)
-  , (5,alex_action_7)
-  , (4,alex_action_6)
-  , (3,alex_action_5)
+  , (7,alex_action_8)
+  , (6,alex_action_7)
+  , (5,alex_action_6)
+  , (4,alex_action_5)
+  , (3,alex_action_4)
   , (2,alex_action_4)
   , (1,alex_action_4)
   , (0,alex_action_4)
@@ -469,23 +470,26 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b ">=" 22
-    (b "--" 11
-       (b "*" 6
-          (b "&&" 3 (b "%" 2 (b "!=" 1 N N) N) (b ")" 5 (b "(" 4 N N) N))
-          (b "," 9 (b "++" 8 (b "+" 7 N N) N) (b "-" 10 N N)))
-       (b "<<" 17
-          (b ":" 14 (b "/" 13 (b "." 12 N N) N) (b "<" 16 (b ";" 15 N N) N))
-          (b "==" 20 (b "=" 19 (b "<=" 18 N N) N) (b ">" 21 N N))))
-    (b "return" 33
-       (b "double" 28
-          (b "[" 25
-             (b "?" 24 (b ">>" 23 N N) N) (b "bool" 27 (b "]" 26 N N) N))
-          (b "if" 31 (b "false" 30 (b "else" 29 N N) N) (b "int" 32 N N)))
-       (b "void" 38
-          (b "typedef" 36
-             (b "true" 35 (b "string" 34 N N) N) (b "vector" 37 N N))
-          (b "||" 41 (b "{" 40 (b "while" 39 N N) N) (b "}" 42 N N))))
+  b ">=" 23
+    (b "--" 12
+       (b ")" 6
+          (b "&" 3 (b "%" 2 (b "!=" 1 N N) N) (b "(" 5 (b "&&" 4 N N) N))
+          (b "++" 9 (b "+" 8 (b "*" 7 N N) N) (b "-" 11 (b "," 10 N N) N)))
+       (b "<<" 18
+          (b ":" 15 (b "/" 14 (b "." 13 N N) N) (b "<" 17 (b ";" 16 N N) N))
+          (b "==" 21 (b "=" 20 (b "<=" 19 N N) N) (b ">" 22 N N))))
+    (b "return" 35
+       (b "const" 29
+          (b "[" 26
+             (b "?" 25 (b ">>" 24 N N) N) (b "bool" 28 (b "]" 27 N N) N))
+          (b "false" 32
+             (b "else" 31 (b "double" 30 N N) N)
+             (b "int" 34 (b "if" 33 N N) N)))
+       (b "void" 41
+          (b "true" 38
+             (b "throw" 37 (b "string" 36 N N) N)
+             (b "vector" 40 (b "typedef" 39 N N) N))
+          (b "||" 44 (b "{" 43 (b "while" 42 N N) N) (b "}" 45 N N))))
   where
   b s n = B bs (TS bs n)
     where

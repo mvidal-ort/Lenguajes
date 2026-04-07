@@ -15,7 +15,8 @@ double grade(double midterm, double final, double homework)
 // compute a student's overall grade from midterm and final exam grades
 // and vector of homework grades.
 // this function does not copy its argument, because `median' does so for us.
-double grade(double midterm, double final, const vector<double>& hw)
+//double grade(double midterm, double final, const vector<double>& hw) 
+double grade(double midterm, double final, const vector& hw)
 {
 	if (hw.size() == 0)
 		throw domain_error("student has done no homework");

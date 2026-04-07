@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \( | \) | \{ | \} | \, | \; | \= | \. | \[ | \] | \+ \+ | \- \- | \* | \/ | \% | \+ | \- | \> \> | \< \< | \< | \> | \< \= | \> \= | \= \= | \! \= | \& \& | \| \| | \? | \:
+@rsyms = \( | \) | \{ | \} | \, | \; | \= | \& | \. | \[ | \] | \+ \+ | \- \- | \* | \/ | \% | \+ | \- | \> \> | \< \< | \< | \> | \< \= | \> \= | \= \= | \! \= | \& \& | \| \| | \? | \:
 
 :-
 
@@ -171,23 +171,26 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b ">=" 22
-    (b "--" 11
-       (b "*" 6
-          (b "&&" 3 (b "%" 2 (b "!=" 1 N N) N) (b ")" 5 (b "(" 4 N N) N))
-          (b "," 9 (b "++" 8 (b "+" 7 N N) N) (b "-" 10 N N)))
-       (b "<<" 17
-          (b ":" 14 (b "/" 13 (b "." 12 N N) N) (b "<" 16 (b ";" 15 N N) N))
-          (b "==" 20 (b "=" 19 (b "<=" 18 N N) N) (b ">" 21 N N))))
-    (b "return" 33
-       (b "double" 28
-          (b "[" 25
-             (b "?" 24 (b ">>" 23 N N) N) (b "bool" 27 (b "]" 26 N N) N))
-          (b "if" 31 (b "false" 30 (b "else" 29 N N) N) (b "int" 32 N N)))
-       (b "void" 38
-          (b "typedef" 36
-             (b "true" 35 (b "string" 34 N N) N) (b "vector" 37 N N))
-          (b "||" 41 (b "{" 40 (b "while" 39 N N) N) (b "}" 42 N N))))
+  b ">=" 23
+    (b "--" 12
+       (b ")" 6
+          (b "&" 3 (b "%" 2 (b "!=" 1 N N) N) (b "(" 5 (b "&&" 4 N N) N))
+          (b "++" 9 (b "+" 8 (b "*" 7 N N) N) (b "-" 11 (b "," 10 N N) N)))
+       (b "<<" 18
+          (b ":" 15 (b "/" 14 (b "." 13 N N) N) (b "<" 17 (b ";" 16 N N) N))
+          (b "==" 21 (b "=" 20 (b "<=" 19 N N) N) (b ">" 22 N N))))
+    (b "return" 35
+       (b "const" 29
+          (b "[" 26
+             (b "?" 25 (b ">>" 24 N N) N) (b "bool" 28 (b "]" 27 N N) N))
+          (b "false" 32
+             (b "else" 31 (b "double" 30 N N) N)
+             (b "int" 34 (b "if" 33 N N) N)))
+       (b "void" 41
+          (b "true" 38
+             (b "throw" 37 (b "string" 36 N N) N)
+             (b "vector" 40 (b "typedef" 39 N N) N))
+          (b "||" 44 (b "{" 43 (b "while" 42 N N) N) (b "}" 45 N N))))
   where
   b s n = B bs (TS bs n)
     where

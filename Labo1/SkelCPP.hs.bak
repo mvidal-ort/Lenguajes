@@ -31,6 +31,17 @@ transArg :: AbsCPP.Arg -> Result
 transArg x = case x of
   AbsCPP.ADecl type_ id -> failure x
 
+transType :: AbsCPP.Type -> Result
+transType x = case x of
+  AbsCPP.TConst type_ -> failure x
+  AbsCPP.TId id -> failure x
+  AbsCPP.Type_bool -> failure x
+  AbsCPP.Type_int -> failure x
+  AbsCPP.Type_double -> failure x
+  AbsCPP.Type_void -> failure x
+  AbsCPP.Type_string -> failure x
+  AbsCPP.Type_vector -> failure x
+
 transStm :: AbsCPP.Stm -> Result
 transStm x = case x of
   AbsCPP.SExp exp -> failure x
@@ -42,17 +53,8 @@ transStm x = case x of
   AbsCPP.SBlock stms -> failure x
   AbsCPP.SIf exp stm -> failure x
   AbsCPP.SIfElse exp stm1 stm2 -> failure x
+  AbsCPP.SThrow exp -> failure x
   AbsCPP.STypedef type_ id -> failure x
-
-transType :: AbsCPP.Type -> Result
-transType x = case x of
-  AbsCPP.TId id -> failure x
-  AbsCPP.Type_bool -> failure x
-  AbsCPP.Type_int -> failure x
-  AbsCPP.Type_double -> failure x
-  AbsCPP.Type_void -> failure x
-  AbsCPP.Type_string -> failure x
-  AbsCPP.Type_vector -> failure x
 
 transExp :: AbsCPP.Exp -> Result
 transExp x = case x of
@@ -66,12 +68,14 @@ transExp x = case x of
   AbsCPP.EDot exp id -> failure x
   AbsCPP.EAppExp exp exps -> failure x
   AbsCPP.EStringConcat exp string -> failure x
+  AbsCPP.EIndex exp1 exp2 -> failure x
   AbsCPP.EPIncr exp -> failure x
   AbsCPP.EPDecr exp -> failure x
   AbsCPP.EIncr exp -> failure x
   AbsCPP.EDecr exp -> failure x
   AbsCPP.ETimes exp1 exp2 -> failure x
   AbsCPP.EDiv exp1 exp2 -> failure x
+  AbsCPP.EMod exp1 exp2 -> failure x
   AbsCPP.EPlus exp1 exp2 -> failure x
   AbsCPP.EMinus exp1 exp2 -> failure x
   AbsCPP.ERightShift exp1 exp2 -> failure x
@@ -85,4 +89,5 @@ transExp x = case x of
   AbsCPP.EAnd exp1 exp2 -> failure x
   AbsCPP.EOr exp1 exp2 -> failure x
   AbsCPP.EAss exp1 exp2 -> failure x
+  AbsCPP.ECond exp1 exp2 exp3 -> failure x
   AbsCPP.ETyped exp type_ -> failure x

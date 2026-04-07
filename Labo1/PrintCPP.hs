@@ -155,6 +155,18 @@ instance Print AbsCPP.Arg where
   prt i = \case
     AbsCPP.ADecl type_ id_ -> prPrec i 0 (concatD [prt 0 type_, prt 0 id_])
 
+instance Print AbsCPP.Type where
+  prt i = \case
+    AbsCPP.TConst type_ -> prPrec i 0 (concatD [doc (showString "const"), prt 0 type_])
+    AbsCPP.TId id_ -> prPrec i 0 (concatD [prt 0 id_])
+    AbsCPP.TRef type_ -> prPrec i 0 (concatD [prt 0 type_, doc (showString "&")])
+    AbsCPP.Type_bool -> prPrec i 0 (concatD [doc (showString "bool")])
+    AbsCPP.Type_int -> prPrec i 0 (concatD [doc (showString "int")])
+    AbsCPP.Type_double -> prPrec i 0 (concatD [doc (showString "double")])
+    AbsCPP.Type_void -> prPrec i 0 (concatD [doc (showString "void")])
+    AbsCPP.Type_string -> prPrec i 0 (concatD [doc (showString "string")])
+    AbsCPP.Type_vector -> prPrec i 0 (concatD [doc (showString "vector")])
+
 instance Print [AbsCPP.Arg] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
@@ -171,17 +183,8 @@ instance Print AbsCPP.Stm where
     AbsCPP.SBlock stms -> prPrec i 0 (concatD [doc (showString "{"), prt 0 stms, doc (showString "}")])
     AbsCPP.SIf exp stm -> prPrec i 0 (concatD [doc (showString "if"), doc (showString "("), prt 0 exp, doc (showString ")"), prt 0 stm])
     AbsCPP.SIfElse exp stm1 stm2 -> prPrec i 0 (concatD [doc (showString "if"), doc (showString "("), prt 0 exp, doc (showString ")"), prt 0 stm1, doc (showString "else"), prt 0 stm2])
+    AbsCPP.SThrow exp -> prPrec i 0 (concatD [doc (showString "throw"), prt 0 exp, doc (showString ";")])
     AbsCPP.STypedef type_ id_ -> prPrec i 0 (concatD [doc (showString "typedef"), prt 0 type_, prt 0 id_, doc (showString ";")])
-
-instance Print AbsCPP.Type where
-  prt i = \case
-    AbsCPP.TId id_ -> prPrec i 0 (concatD [prt 0 id_])
-    AbsCPP.Type_bool -> prPrec i 0 (concatD [doc (showString "bool")])
-    AbsCPP.Type_int -> prPrec i 0 (concatD [doc (showString "int")])
-    AbsCPP.Type_double -> prPrec i 0 (concatD [doc (showString "double")])
-    AbsCPP.Type_void -> prPrec i 0 (concatD [doc (showString "void")])
-    AbsCPP.Type_string -> prPrec i 0 (concatD [doc (showString "string")])
-    AbsCPP.Type_vector -> prPrec i 0 (concatD [doc (showString "vector")])
 
 instance Print [AbsCPP.Stm] where
   prt _ [] = concatD []

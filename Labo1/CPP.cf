@@ -5,6 +5,8 @@ DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
 terminator Def "" ;
 
 ADecl.   Arg    ::= Type Id ;
+TConst. Type ::= "const" Type ; -- cuarta prueba, para que acepte const 
+                                -- en la linea: double grade(double midterm, double final, const vector<double>& hw)                                 
 
 separator Arg "," ;
 
@@ -17,6 +19,7 @@ SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
 SBlock.      Stm ::= "{" [Stm] "}" ;
 SIf. Stm ::= "if" "(" Exp ")" Stm ; -- tercera prueba, soporte para if sin else
 SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+SThrow. Stm ::= "throw" Exp ";" ; -- cuarta prueba, para que acepte throw
 
 STypedef. Stm ::= "typedef" Type Id ";" ; -- tercera prueba
 TId. Type ::= Id ; --tercera prueba 
@@ -24,6 +27,7 @@ TId. Type ::= Id ; --tercera prueba
                     -- estas reglas hacen que sea genérico el poder usar un id como type.
                     -- podría haber modificado el rules Type mas abajo, agregando vec_sz, pero sería específico para este caso.
                     -- y no genérico para cualquier alias de tipo
+TRef. Type ::= Type "&" ; -- Cuarta prueba, soporte para tipos referenciados con &
 
 terminator Stm "" ;
 

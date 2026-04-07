@@ -31,6 +31,18 @@ transArg :: AbsCPP.Arg -> Result
 transArg x = case x of
   AbsCPP.ADecl type_ id -> failure x
 
+transType :: AbsCPP.Type -> Result
+transType x = case x of
+  AbsCPP.TConst type_ -> failure x
+  AbsCPP.TId id -> failure x
+  AbsCPP.TRef type_ -> failure x
+  AbsCPP.Type_bool -> failure x
+  AbsCPP.Type_int -> failure x
+  AbsCPP.Type_double -> failure x
+  AbsCPP.Type_void -> failure x
+  AbsCPP.Type_string -> failure x
+  AbsCPP.Type_vector -> failure x
+
 transStm :: AbsCPP.Stm -> Result
 transStm x = case x of
   AbsCPP.SExp exp -> failure x
@@ -42,17 +54,8 @@ transStm x = case x of
   AbsCPP.SBlock stms -> failure x
   AbsCPP.SIf exp stm -> failure x
   AbsCPP.SIfElse exp stm1 stm2 -> failure x
+  AbsCPP.SThrow exp -> failure x
   AbsCPP.STypedef type_ id -> failure x
-
-transType :: AbsCPP.Type -> Result
-transType x = case x of
-  AbsCPP.TId id -> failure x
-  AbsCPP.Type_bool -> failure x
-  AbsCPP.Type_int -> failure x
-  AbsCPP.Type_double -> failure x
-  AbsCPP.Type_void -> failure x
-  AbsCPP.Type_string -> failure x
-  AbsCPP.Type_vector -> failure x
 
 transExp :: AbsCPP.Exp -> Result
 transExp x = case x of

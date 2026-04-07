@@ -19,6 +19,18 @@ data Def = DFun Type Id [Arg] [Stm]
 data Arg = ADecl Type Id
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
+data Type
+    = TConst Type
+    | TId Id
+    | TRef Type
+    | Type_bool
+    | Type_int
+    | Type_double
+    | Type_void
+    | Type_string
+    | Type_vector
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
 data Stm
     = SExp Exp
     | SDecls Type [Id]
@@ -29,17 +41,8 @@ data Stm
     | SBlock [Stm]
     | SIf Exp Stm
     | SIfElse Exp Stm Stm
+    | SThrow Exp
     | STypedef Type Id
-  deriving (C.Eq, C.Ord, C.Show, C.Read)
-
-data Type
-    = TId Id
-    | Type_bool
-    | Type_int
-    | Type_double
-    | Type_void
-    | Type_string
-    | Type_vector
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Exp

@@ -12,9 +12,9 @@ module ParCPP
   , pDef
   , pListDef
   , pArg
+  , pType
   , pListArg
   , pStm
-  , pType
   , pListStm
   , pExp15
   , pExp14
@@ -47,9 +47,9 @@ import LexCPP
 %name pDef Def
 %name pListDef ListDef
 %name pArg Arg
+%name pType Type
 %name pListArg ListArg
 %name pStm Stm
-%name pType Type
 %name pListStm ListStm
 %name pExp15 Exp15
 %name pExp14 Exp14
@@ -75,46 +75,49 @@ import LexCPP
 %token
   '!='      { PT _ (TS _ 1)  }
   '%'       { PT _ (TS _ 2)  }
-  '&&'      { PT _ (TS _ 3)  }
-  '('       { PT _ (TS _ 4)  }
-  ')'       { PT _ (TS _ 5)  }
-  '*'       { PT _ (TS _ 6)  }
-  '+'       { PT _ (TS _ 7)  }
-  '++'      { PT _ (TS _ 8)  }
-  ','       { PT _ (TS _ 9)  }
-  '-'       { PT _ (TS _ 10) }
-  '--'      { PT _ (TS _ 11) }
-  '.'       { PT _ (TS _ 12) }
-  '/'       { PT _ (TS _ 13) }
-  ':'       { PT _ (TS _ 14) }
-  ';'       { PT _ (TS _ 15) }
-  '<'       { PT _ (TS _ 16) }
-  '<<'      { PT _ (TS _ 17) }
-  '<='      { PT _ (TS _ 18) }
-  '='       { PT _ (TS _ 19) }
-  '=='      { PT _ (TS _ 20) }
-  '>'       { PT _ (TS _ 21) }
-  '>='      { PT _ (TS _ 22) }
-  '>>'      { PT _ (TS _ 23) }
-  '?'       { PT _ (TS _ 24) }
-  '['       { PT _ (TS _ 25) }
-  ']'       { PT _ (TS _ 26) }
-  'bool'    { PT _ (TS _ 27) }
-  'double'  { PT _ (TS _ 28) }
-  'else'    { PT _ (TS _ 29) }
-  'false'   { PT _ (TS _ 30) }
-  'if'      { PT _ (TS _ 31) }
-  'int'     { PT _ (TS _ 32) }
-  'return'  { PT _ (TS _ 33) }
-  'string'  { PT _ (TS _ 34) }
-  'true'    { PT _ (TS _ 35) }
-  'typedef' { PT _ (TS _ 36) }
-  'vector'  { PT _ (TS _ 37) }
-  'void'    { PT _ (TS _ 38) }
-  'while'   { PT _ (TS _ 39) }
-  '{'       { PT _ (TS _ 40) }
-  '||'      { PT _ (TS _ 41) }
-  '}'       { PT _ (TS _ 42) }
+  '&'       { PT _ (TS _ 3)  }
+  '&&'      { PT _ (TS _ 4)  }
+  '('       { PT _ (TS _ 5)  }
+  ')'       { PT _ (TS _ 6)  }
+  '*'       { PT _ (TS _ 7)  }
+  '+'       { PT _ (TS _ 8)  }
+  '++'      { PT _ (TS _ 9)  }
+  ','       { PT _ (TS _ 10) }
+  '-'       { PT _ (TS _ 11) }
+  '--'      { PT _ (TS _ 12) }
+  '.'       { PT _ (TS _ 13) }
+  '/'       { PT _ (TS _ 14) }
+  ':'       { PT _ (TS _ 15) }
+  ';'       { PT _ (TS _ 16) }
+  '<'       { PT _ (TS _ 17) }
+  '<<'      { PT _ (TS _ 18) }
+  '<='      { PT _ (TS _ 19) }
+  '='       { PT _ (TS _ 20) }
+  '=='      { PT _ (TS _ 21) }
+  '>'       { PT _ (TS _ 22) }
+  '>='      { PT _ (TS _ 23) }
+  '>>'      { PT _ (TS _ 24) }
+  '?'       { PT _ (TS _ 25) }
+  '['       { PT _ (TS _ 26) }
+  ']'       { PT _ (TS _ 27) }
+  'bool'    { PT _ (TS _ 28) }
+  'const'   { PT _ (TS _ 29) }
+  'double'  { PT _ (TS _ 30) }
+  'else'    { PT _ (TS _ 31) }
+  'false'   { PT _ (TS _ 32) }
+  'if'      { PT _ (TS _ 33) }
+  'int'     { PT _ (TS _ 34) }
+  'return'  { PT _ (TS _ 35) }
+  'string'  { PT _ (TS _ 36) }
+  'throw'   { PT _ (TS _ 37) }
+  'true'    { PT _ (TS _ 38) }
+  'typedef' { PT _ (TS _ 39) }
+  'vector'  { PT _ (TS _ 40) }
+  'void'    { PT _ (TS _ 41) }
+  'while'   { PT _ (TS _ 42) }
+  '{'       { PT _ (TS _ 43) }
+  '||'      { PT _ (TS _ 44) }
+  '}'       { PT _ (TS _ 45) }
   L_doubl   { PT _ (TD $$)   }
   L_integ   { PT _ (TI $$)   }
   L_quoted  { PT _ (TL $$)   }
@@ -147,6 +150,18 @@ ListDef : {- empty -} { [] } | Def ListDef { (:) $1 $2 }
 Arg :: { AbsCPP.Arg }
 Arg : Type Id { AbsCPP.ADecl $1 $2 }
 
+Type :: { AbsCPP.Type }
+Type
+  : 'const' Type { AbsCPP.TConst $2 }
+  | Id { AbsCPP.TId $1 }
+  | Type '&' { AbsCPP.TRef $1 }
+  | 'bool' { AbsCPP.Type_bool }
+  | 'int' { AbsCPP.Type_int }
+  | 'double' { AbsCPP.Type_double }
+  | 'void' { AbsCPP.Type_void }
+  | 'string' { AbsCPP.Type_string }
+  | 'vector' { AbsCPP.Type_vector }
+
 ListArg :: { [AbsCPP.Arg] }
 ListArg
   : {- empty -} { [] }
@@ -164,17 +179,8 @@ Stm
   | '{' ListStm '}' { AbsCPP.SBlock $2 }
   | 'if' '(' Exp ')' Stm { AbsCPP.SIf $3 $5 }
   | 'if' '(' Exp ')' Stm 'else' Stm { AbsCPP.SIfElse $3 $5 $7 }
+  | 'throw' Exp ';' { AbsCPP.SThrow $2 }
   | 'typedef' Type Id ';' { AbsCPP.STypedef $2 $3 }
-
-Type :: { AbsCPP.Type }
-Type
-  : Id { AbsCPP.TId $1 }
-  | 'bool' { AbsCPP.Type_bool }
-  | 'int' { AbsCPP.Type_int }
-  | 'double' { AbsCPP.Type_double }
-  | 'void' { AbsCPP.Type_void }
-  | 'string' { AbsCPP.Type_string }
-  | 'vector' { AbsCPP.Type_vector }
 
 ListStm :: { [AbsCPP.Stm] }
 ListStm : {- empty -} { [] } | Stm ListStm { (:) $1 $2 }
