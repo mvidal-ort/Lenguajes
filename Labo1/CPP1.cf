@@ -1,0 +1,132 @@
+-- Martin Vidal n.est 68694
+
+Top. Top ::= Def ;
+TopStm. Top ::= Stm ;
+PDefs. Program ::= [Top] ;
+--PDefs.   Program ::= [Def] ;
+--PStm. Program ::= Stm ; -- para archivos con solo una linea sin estrucuta.
+
+DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+DDecl. Def ::= Type Id "(" [Arg] ")" ";" ; --(Grammar.cc) Permite declaración de prototipos de funcion, sin statements
+
+terminator Def "" ;
+
+ADecl.   Arg    ::= Type Id ;
+ADeclNoId. Arg ::= Type ; --(grammar.cc) Permite argumentos sin nombre: void gen_aux(const Grammar&, const string&, vector&);
+                            
+TConst. Type ::= "const" Type ; -- cuarta prueba, para que acepte const 
+                                -- en la linea: double grade(double midterm, double final, const vector<double>& hw)                                 
+
+separator Arg "," ;
+
+SExp.        Stm ::= Exp ";" ;
+-- SDecls.      Stm ::= Type [Id] ";" ; --se cambio para evitar ambiguedad
+SDecls. Stm ::= Type Ids ";" ;
+Ids.  Ids ::= Id ;
+IdsC. Ids ::= Id "," Ids ;
+
+SInit.       Stm ::= Type Id "=" Exp ";" ;
+SReturn.     Stm ::= "return" Exp ";" ;
+SReturnVoid. Stm ::= "return" ";" ;
+SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
+
+SFor. Stm ::= "for" "(" Stm Exp ";" Exp ")" Stm ; --(grammar.cc) soporte para FOR
+SBlock.      Stm ::= "{" [Stm] "}" ;
+SIf. Stm ::= "if" "(" Exp ")" Stm ; -- tercera prueba, soporte para if sin else
+SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
+SThrow. Stm ::= "throw" Exp ";" ; -- cuarta prueba, para que acepte throw
+
+STypedef. Stm ::= "typedef" Type Id ";" ; -- tercera prueba
+
+SEmpty. Stm ::= ";" ; --(grammar.cc), la linea: while (r >= n); es un while con statement vacío.
+-- las opciones son, crear una regla especificac para un while sin statements: SWhileEmpty. Stm ::= "while" "(" Exp ")" ";" ; 
+-- o una solucion más generica que considere simplemente el statement vacío y usar la regla while que ya existe
+-- la ventaja es que permite usarla en otros contextos
+
+
+TId. Type ::= Id ; --tercera prueba 
+                    -- Las dos reglas anteriores permiten la linea: typedef size_type vec_sz; es decir alias de tipos
+                    -- estas reglas hacen que sea genérico el poder usar un id como type.
+                    -- podría haber modificado el rules Type mas abajo, agregando vec_sz, pero sería específico para este caso.
+                    -- y no genérico para cualquier alias de tipo
+-- TRef. Type ::= Type "&" ; -- Cuarta prueba, soporte para tipos referenciados con & -- eliminada posteriormente por ambiguedad    
+-- para manejar referencias en declaraciones (linea: int & t1 = t; linea unica en el archivo)
+SInitRef. Stm ::= Type "&" Id "=" Exp ";" ;
+SDeclRef. Stm ::= Type "&" Id ";" ;
+DInitRef. Def ::= Type "&" Id "=" Exp ";" ;
+
+DTypedef. Def ::= "typedef" Type Id ";" ; --sexta prueba (grammar.cc), es para permitir el typedef a nivel global, antes de que inicie el programa
+                                          --la gramatica empieza como un programa que es una lista de definiciones
+                                          --pero el typedef global está antes, entonces hay que agregar esta regla para que lo permita
+                                          --hay una regla similar STypedef pero es para statements dentro del programa
+
+terminator Stm "" ;
+
+ETrue.   Exp15  ::= "true" ;
+EFalse.  Exp15  ::= "false" ;
+EInt.    Exp15  ::= Integer ;
+EDouble. Exp15  ::= Double ;
+EString. Exp15  ::= String ;
+EChar. Exp15 ::= Char ; --(grammar.cc) Soporte para char, en el archivo está esto: '<' por ejemplo. BNFC ya tiene el token Char predefinido
+EId.     Exp15  ::= Id ; 
+
+EApp.    Exp15  ::= Id "(" [Exp] ")" ;
+EDot.    Exp15 ::= Exp15 "." Id ; -- tercera prueba, regla para aceptar punto
+EArrow. Exp15 ::= Exp15 "->" Id ; -- (grammar.cc) soporte para el operador ->, linea:const Rule_collection& c = it->second;
+EAppExp. Exp15 ::= Exp15 "(" [Exp] ")" ; -- tercera prueba, regla para llamada a metodo sobre expresion
+                                        -- las dos reglas anteriores permiten la linea: homework.push_back(x);
+
+EStringConcat. Exp15 ::= Exp15 String ; -- tercera prueba concatenacion de strings
+                                        -- "Enter all your homework grades, " "followed by end-of-file: ";  
+EIndex. Exp15 ::= Exp15 "[" Exp "]" ; -- tercera prueba, se explica mas abajo (median = ...)
+EPIncr.  Exp14  ::= Exp15 "++" ;
+EPDecr.  Exp14  ::= Exp15 "--" ;
+
+EIncr.   Exp13  ::= "++" Exp14 ;
+EDecr.   Exp13  ::= "--" Exp14 ;
+ENot. Exp13 ::= "!" Exp14 ; --(grammar.cc), permite el operador unario negación
+EDeref. Exp13 ::= "*" Exp14 ; -- (grammar.cc) permite el operador unario de desrefenciacion: *i, en la linea:gen_aux(g, *i, ret);
+
+ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;
+EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
+EMod. Exp12 ::= Exp12 "%" Exp13 ; -- tercera prueba, se explica mas abajo (median = ...)
+EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
+EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
+ERightShift. Exp10 ::= Exp10 ">>" Exp11 ; -- para la segunda prueba
+ELeftShift. Exp10 ::= Exp10 "<<" Exp11 ; -- para la primera prueba
+ELt.     Exp9   ::= Exp9  "<"  Exp10 ;
+EGt.     Exp9   ::= Exp9  ">"  Exp10 ;
+ELtEq.   Exp9   ::= Exp9  "<=" Exp10 ;
+EGtEq.   Exp9   ::= Exp9  ">=" Exp10 ;
+EEq.     Exp8   ::= Exp8  "==" Exp9 ;
+ENEq.    Exp8   ::= Exp8  "!=" Exp9 ;
+EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
+EOr.     Exp3   ::= Exp3  "||" Exp4 ;
+EAss.    Exp2   ::= Exp3 "=" Exp2 ;
+ECond. Exp2 ::= Exp3 "?" Exp ":" Exp2 ; -- tercera prueba, se explica mas abajo (median = ...)
+
+-- Las pongo juntas para la tercera prueba la linea:
+-- median = size % 2 == 0 ? (homework[mid] + homework[mid-1]) / 2
+--	                       : homework[mid];
+-- EMod.   Exp12 ::= Exp12 "%" Exp13 ; -- operador modulo, al mismo nivel que * y /
+-- ECond.  Exp2  ::= Exp3 "?" Exp ":" Exp2 ; -- operador ternario, condicion decide en este caso que asiganarle a median si es par o no, 
+                                             -- aplica regla EAss.
+                                             -- se pone a nivel bajo similar a asignación
+-- EIndex. Exp15 ::= Exp15 "[" Exp "]" ; -- indexacion 
+-- cada una esta en el lugar correspondiente
+
+internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ;
+
+coercions Exp 15 ;
+
+separator Exp "," ;
+
+rules Type   ::= "bool" | "int" | "double" | "void" | "string" | "vector"; -- tercera prueba define vector como tipo simple
+
+token Id (letter (letter | digit | '_')*) ;
+
+separator nonempty Id "," ;
+
+comment "#" ;
+comment "//" ;
+comment "/*" "*/" ;
