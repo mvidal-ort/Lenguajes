@@ -19,6 +19,7 @@ type Env = (Sig,[Context])
 type Sig = Map Id ([Type],Type)
 type Context = Map Id Type
 
+-- la busqueda es desde el contexto actual y sique hacia el contexto más exterior (hacia abajo en el stack)
 lookupVar :: Env -> Id -> Err Type
 lookupVar (sig, []) x = Bad "Variable not found"
 lookupVar (sig, g:gs) x = case Map.lookup x g of
@@ -27,16 +28,51 @@ lookupVar (sig, g:gs) x = case Map.lookup x g of
 
 
 lookupFun :: Env -> Id -> Err ([Type], Type)
-lookupFun = undefined
+lookupFun (sig, _) x = case Map.lookup x sig of
+    Just f -> Ok f
+    Nothing -> Bad "Function not found"
 
+-- el update siempre es el en contexto mas arriba en el stack (actual)
 updateVar :: Env -> Id -> Type -> Err Env
-updateVar = undefined
+updateVar (sig, g:gs) x t = case Map.lookup x g of
+    Just _  -> Bad "Variable already declared in this scope"
+    Nothing -> Ok (sig, Map.insert x t g : gs)
 
+-- Aqui params representa todos los tipos de la funcion, tanto la lista de parametros de entrada como el de salida
 updateFun :: Env -> Id -> ([Type],Type) -> Err Env
-updateFun = undefined
+updateFun (sig, gs) f params = case Map.lookup f sig of
+    Just _ -> Bad "Function already declared"
+    Nothing -> Ok (Map.insert f params sig, gs)
 
 newBlock :: Env -> Env
-newBlock = undefined
+newBlock (sig, gs) = (sig, Map.empty : gs)
 
 emptyEnv :: Env
 emptyEnv = (Map.empty, [Map.empty])
+
+
+-- =====================
+-- Ejemplo para probar
+-- =====================
+
+env0 :: Env
+env0 =
+  ( sig
+  , [ ctxActual
+    , ctxGlobal
+    ]
+  )
+  where
+    sig = Map.fromList
+      [ (Id "printInt", ([Type_int], Type_void))
+      , (Id "sum", ([Type_int, Type_int], Type_int))
+      ]
+
+    ctxActual = Map.fromList
+      [ (Id "y", Type_bool)
+      ]
+
+    ctxGlobal = Map.fromList
+      [ (Id "x", Type_int)
+      , (Id "z", Type_double)
+      ]

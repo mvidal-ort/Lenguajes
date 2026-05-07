@@ -12,7 +12,8 @@ import Prelude hiding (fail)
 #endif
 
 typecheck :: Program -> Err ()
-typecheck p = fail "no implementado" 
+typecheck p = do
+  checkProg emptyEnv p
 
 checkProg :: Env -> Program -> Err ()
 checkProg = undefined 
