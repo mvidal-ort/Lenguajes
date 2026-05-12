@@ -29,7 +29,8 @@ buildSig env (d:ds) =
 
 checkProg :: Env -> Program -> Err ()
 checkProg env (PDefs defs) =
-  mapM_ (checkDef env) defs
+  mapM_ (checkDef env) defs --curryfica, creando una "nueva funcion" que chequea una definición usando ese env
+  -- aplicar checkDef env, a cada definición en secuencia, propagando errores e ignorando resultados
 
 -- Para probar
 checkDef :: Env -> Def -> Err ()
