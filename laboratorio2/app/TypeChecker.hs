@@ -11,6 +11,9 @@ import Env
 import Prelude hiding (fail)
 #endif
 
+
+-- Se puede probar con cabal run ...path
+
 typecheck :: Program -> Err ()
 typecheck (PDefs defs) = do
   env <- buildSig emptyEnv defs
@@ -43,6 +46,18 @@ checkDef _ _ = return ()
 
 inferExp :: Env -> Exp -> Err Type
 inferExp = undefined
+-- En Eplus, la otra version lo hace con case en los tipos de los sumandos. (asi lo hace en el libro)
+-- En clase hace un elem del tipo para ver si esta en la lista de posibles tipos de sumandos [int, double, string]
+-- Como data Type tiene deriving Ord, puede comparalos y hace un max de los tipos inferidos para devolver el tipo de la suma
+-- asume el orden de la efinicion bool < int < double < string
+-- ver captura labo2-tipoSuma
+-- el libro recomienda la primera opcion porque el Eminus es el mismo codigo pero no se permite string, entonces tiene mas sentido
+-- hacer el case.
+-- el libro hace una abstraccion para operadores binarios y junta todo el codigo en un solo checkeo, ver labo2-tipoBinario
+
+-- tipo de variable Eid
+-- no se precisa el DO, se puede llamar directamente al lookup, pero es lo mismo
+-- ver labo2-tipoVariable
 
 checkExp :: Env -> Exp -> Type -> Err ()
 checkExp = undefined
