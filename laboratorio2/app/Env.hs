@@ -19,6 +19,12 @@ type Env = (Sig,[Context])
 type Sig = Map Id ([Type],Type)
 type Context = Map Id Type
 
+-- el uso return es mas apropiado, ya que la funcion return ya hace el casteo del tipo generico a al tipo generico Maybe a
+-- Entonces el just y el Nothing ya estan considerados al poner return
+-- si uso OK o Bad, tengo que especificarlos siendo ok el just, y el bad el nothing. Con reeturn no es necesario
+-- return es una interfaz de mas alto nivel 
+
+
 -- la busqueda es desde el contexto actual y sique hacia el contexto más exterior (hacia abajo en el stack)
 lookupVar :: Env -> Id -> Err Type
 lookupVar (sig, []) x = Bad "Variable not found"
