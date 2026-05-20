@@ -72,36 +72,124 @@ inferExp _ EFalse = return Type_bool
 inferExp _ (EDouble _) = return Type_double
 inferExp _ (EString _) = return Type_string
 inferExp env (EId x) = lookupVar env x
+inferExp env (EPlus e1 e2) = inferArith env e1 e2 [Type_int, Type_double, Type_string]
+inferExp env (EMinus e1 e2) = inferArith env e1 e2 [Type_int, Type_double]
+inferExp env (ETimes e1 e2) = inferArith env e1 e2 [Type_int, Type_double]
+inferExp env (EDiv e1 e2) = inferArith env e1 e2 [Type_int, Type_double]
+inferExp env (ELt e1 e2) = inferOrdering env e1 e2
+inferExp env (EGt e1 e2) = inferOrdering env e1 e2
+inferExp env (ELtEq e1 e2) = inferOrdering env e1 e2
+inferExp env (EGtEq e1 e2) = inferOrdering env e1 e2
+inferExp env (EEq e1 e2) = inferEquality env e1 e2
+inferExp env (ENEq e1 e2) = inferEquality env e1 e2
+inferExp env (EAnd e1 e2) = inferBoolean env e1 e2
+inferExp env (EOr e1 e2) = inferBoolean env e1 e2
+inferExp env (EAss lhs rhs) = inferAssign env lhs rhs
+inferExp env (EApp f exps) = do
+  (argTypes, retType) <- lookupFun env f
+  checkArgs env argTypes exps
+  return retType
+inferExp env (EPIncr e) = inferIncDec env e
+inferExp env (EPDecr e) = inferIncDec env e
+inferExp env (EIncr e) = inferIncDec env e
+inferExp env (EDecr e) = inferIncDec env e
+inferExp env (ETyped e t) = do
+  t' <- inferExp env e
+  if compatible t t'
+    then return t
+    else Bad "Typed expression mismatch"
 
-inferExp _ _ = Bad "expresion no implementada"
+inferExp _ _ = Bad "Expresion not implemented"
 
+-- AUXILIAR: Para inferir los tipos de los operadores aritméticos
+inferArith :: Env -> Exp -> Exp -> [Type] -> Err Type
+inferArith env e1 e2 validTypes = do
+  t1 <- inferExp env e1
+  t2 <- inferExp env e2
+  if elem t1 validTypes && elem t2 validTypes
+    then return (max t1 t2)
+    else Bad "Arithmetic type error"
 
--- data Exp
-    
---     | EApp Id [Exp]
---     | EPIncr Exp
---     | EPDecr Exp
---     | EIncr Exp
---     | EDecr Exp
---     | ETimes Exp Exp
---     | EDiv Exp Exp
---     | EPlus Exp Exp
---     | EMinus Exp Exp
---     | ELt Exp Exp
---     | EGt Exp Exp
---     | ELtEq Exp Exp
---     | EGtEq Exp Exp
---     | EEq Exp Exp
---     | ENEq Exp Exp
---     | EAnd Exp Exp
---     | EOr Exp Exp
---     | EAss Exp Exp
---     | ETyped Exp Type
+-- AUXILIARES: Para inferir tipos de los operadores de comparación (<, >, <=, >=, ==, !=)
+isNumeric :: Type -> Bool
+isNumeric Type_int = True
+isNumeric Type_double = True
+isNumeric _ = False
 
+inferOrdering :: Env -> Exp -> Exp -> Err Type
+inferOrdering env e1 e2 = do
+  t1 <- inferExp env e1
+  t2 <- inferExp env e2
+  if isNumeric t1 && isNumeric t2
+    then return Type_bool
+    else Bad "Ordering type error"
 
+isEqualityType :: Type -> Bool
+isEqualityType Type_bool = True
+isEqualityType Type_int = True
+isEqualityType Type_double = True
+isEqualityType _ = False
 
+-- compatible :: Type -> Type -> Bool
+-- compatible t1 t2 =  t1 == t2 || (isNumeric t1 && isNumeric t2)
 
+compatible :: Type -> Type -> Bool
+compatible lhs rhs =
+  lhs == rhs ||
+  (lhs == Type_double && rhs == Type_int)
 
+inferEquality :: Env -> Exp -> Exp -> Err Type
+inferEquality env e1 e2 = do
+  t1 <- inferExp env e1
+  t2 <- inferExp env e2
+  if isEqualityType t1 &&
+     isEqualityType t2 &&
+     compatible t1 t2
+    then return Type_bool
+    else Bad "Equality type error"
+
+-- AUXILIAR: para inferir tipos en operaciones boolenas (AND, OR)
+inferBoolean :: Env -> Exp -> Exp -> Err Type
+inferBoolean env e1 e2 = do
+  t1 <- inferExp env e1
+  t2 <- inferExp env e2
+  if t1 == Type_bool &&
+     t2 == Type_bool
+    then return Type_bool
+    else Bad "Boolean type error"
+
+-- AUXILIAR: para inferir tipos en la asignación
+inferAssign :: Env -> Exp -> Exp -> Err Type
+inferAssign env (EId x) rhs = do
+  t1 <- lookupVar env x
+  t2 <- inferExp env rhs
+  if compatible t1 t2
+    then return t1
+    else Bad "Assignment type error"
+inferAssign _ _ _ =
+  Bad "Left side of assignment must be a variable"
+
+-- AUXILIARES: Para llamadas a Funcion EAPP
+checkArgs :: Env -> [Type] -> [Exp] -> Err ()
+checkArgs env expectedTypes exps = do
+  actualTypes <- mapM (inferExp env) exps
+  if length expectedTypes /= length actualTypes
+    then Bad "Wrong number of arguments"
+  else if and (zipWith compatible expectedTypes actualTypes)
+    then return ()
+  else
+    Bad "Argument type error"
+
+-- AUXILIAR: Para inferir tipos en Incremento/Decrementos  x++, ++x, x--, --x
+inferIncDec :: Env -> Exp -> Err Type
+inferIncDec env (EId x) = do
+  t <- lookupVar env x
+  if isNumeric t
+    then return t
+    else Bad "Increment/decrement requires numeric variable"
+inferIncDec _ _ = Bad "Increment/decrement requires variable"
+
+----------------------------
 
 checkExp :: Env -> Exp -> Type -> Err ()
 checkExp env e expected = do
