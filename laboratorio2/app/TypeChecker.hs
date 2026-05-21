@@ -102,12 +102,23 @@ inferExp env (ETyped e t) = do
 inferExp _ _ = Bad "Expresion not implemented"
 
 -- AUXILIAR: Para inferir los tipos de los operadores aritméticos
+-- inferArith :: Env -> Exp -> Exp -> [Type] -> Err Type
+-- inferArith env e1 e2 validTypes = do
+--   t1 <- inferExp env e1
+--   t2 <- inferExp env e2
+--   if elem t1 validTypes && elem t2 validTypes
+--     then return (max t1 t2)
+--     else Bad "Arithmetic type error"
+
+-- modificado para que acepte parametros aritmeticos del mismo tipo
 inferArith :: Env -> Exp -> Exp -> [Type] -> Err Type
 inferArith env e1 e2 validTypes = do
   t1 <- inferExp env e1
   t2 <- inferExp env e2
-  if elem t1 validTypes && elem t2 validTypes
-    then return (max t1 t2)
+  if elem t1 validTypes &&
+     elem t2 validTypes &&
+     t1 == t2
+    then return t1
     else Bad "Arithmetic type error"
 
 -- AUXILIARES: Para inferir tipos de los operadores de comparación (<, >, <=, >=, ==, !=)
@@ -116,11 +127,20 @@ isNumeric Type_int = True
 isNumeric Type_double = True
 isNumeric _ = False
 
+-- inferOrdering :: Env -> Exp -> Exp -> Err Type
+-- inferOrdering env e1 e2 = do
+--   t1 <- inferExp env e1
+--   t2 <- inferExp env e2
+--   if isNumeric t1 && isNumeric t2
+--     then return Type_bool
+--     else Bad "Ordering type error"
+
+-- Modificado para que solo acepte paramteros del mismo tipo en las comparaciones
 inferOrdering :: Env -> Exp -> Exp -> Err Type
 inferOrdering env e1 e2 = do
   t1 <- inferExp env e1
   t2 <- inferExp env e2
-  if isNumeric t1 && isNumeric t2
+  if isNumeric t1 && isNumeric t2 && t1 == t2
     then return Type_bool
     else Bad "Ordering type error"
 
@@ -133,10 +153,14 @@ isEqualityType _ = False
 -- compatible :: Type -> Type -> Bool
 -- compatible t1 t2 =  t1 == t2 || (isNumeric t1 && isNumeric t2)
 
+-- compatible :: Type -> Type -> Bool
+-- compatible lhs rhs =
+--   lhs == rhs ||
+--   (lhs == Type_double && rhs == Type_int)
+
+-- Modificado para que solo acepte parametros del mismo tipo en la asignación
 compatible :: Type -> Type -> Bool
-compatible lhs rhs =
-  lhs == rhs ||
-  (lhs == Type_double && rhs == Type_int)
+compatible t1 t2 = t1 == t2
 
 inferEquality :: Env -> Exp -> Exp -> Err Type
 inferEquality env e1 e2 = do
