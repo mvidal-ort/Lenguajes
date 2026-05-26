@@ -1,3 +1,4 @@
+-- Martin Vidal 68694
 {-# LANGUAGE CPP #-}
 
 module TypeChecker where
@@ -56,13 +57,12 @@ addArgs env (ADecl t id : args) = do
 -- En clase hace un elem del tipo para ver si esta en la lista de posibles tipos de sumandos [int, double, string]
 -- Como data Type tiene deriving Ord, puede comparalos y hace un max de los tipos inferidos para devolver el tipo de la suma
 -- asume el orden de la efinicion bool < int < double < string
--- ver captura labo2-tipoSuma
+-- ver imagen de clase: labo2-tipoSuma
 -- el libro recomienda la primera opcion porque el Eminus es el mismo codigo pero no se permite string, entonces tiene mas sentido
 -- hacer el case.
--- el libro hace una abstraccion para operadores binarios y junta todo el codigo en un solo checkeo, ver labo2-tipoBinario
--- tipo de variable Eid
+-- el libro hace una abstraccion para operadores binarios y junta todo el codigo en un solo checkeo, ver imagen labo2-tipoBinario
 -- no se precisa el DO, se puede llamar directamente al lookup, pero es lo mismo
--- ver labo2-tipoVariable
+-- ver imagen labo2-tipoVariable
 
 
 inferExp :: Env -> Exp -> Err Type
@@ -98,8 +98,7 @@ inferExp env (ETyped e t) = do
   if compatible t t'
     then return t
     else Bad "Typed expression mismatch"
-
-inferExp _ _ = Bad "Expresion not implemented"
+--inferExp _ _ = Bad "Expresion not implemented" --Es necesario esto?
 
 -- AUXILIAR: Para inferir los tipos de los operadores aritméticos
 -- inferArith :: Env -> Exp -> Exp -> [Type] -> Err Type
@@ -110,7 +109,7 @@ inferExp _ _ = Bad "Expresion not implemented"
 --     then return (max t1 t2)
 --     else Bad "Arithmetic type error"
 
--- modificado para que acepte parametros aritmeticos del mismo tipo
+-- modificado para que solo acepte parametros aritmeticos del mismo tipo (y pasar los tests)
 inferArith :: Env -> Exp -> Exp -> [Type] -> Err Type
 inferArith env e1 e2 validTypes = do
   t1 <- inferExp env e1
@@ -135,7 +134,7 @@ isNumeric _ = False
 --     then return Type_bool
 --     else Bad "Ordering type error"
 
--- Modificado para que solo acepte paramteros del mismo tipo en las comparaciones
+-- Modificado para que solo acepte paramteros del mismo tipo en las comparaciones (y pase los tests)
 inferOrdering :: Env -> Exp -> Exp -> Err Type
 inferOrdering env e1 e2 = do
   t1 <- inferExp env e1
@@ -158,7 +157,7 @@ isEqualityType _ = False
 --   lhs == rhs ||
 --   (lhs == Type_double && rhs == Type_int)
 
--- Modificado para que solo acepte parametros del mismo tipo en la asignación
+-- Modificado para que solo acepte parametros del mismo tipo en la asignación (y pase los tests)
 compatible :: Type -> Type -> Bool
 compatible t1 t2 = t1 == t2
 
@@ -223,12 +222,12 @@ checkExp env e expected = do
     else Bad "Type mismatch"
 
 -- En clase, la idea es que checkstms hace el checkeo para todos los statemens, entonces cada tipo de stm se hace como regla del checkstms
--- La otra version hace un loop dentro de checkstms, y en cada loop llama a a una auxiliar checkstm (sin s) y procesa cada statement intependiente
+-- La otra version hace un loop dentro de checkstms, y en cada loop llama a a una auxiliar checkstm (sin s) y procesa cada statement independiente
 -- en la checkStm :: Type -> Env -> Stm -> Err Env, haciendo un case por cada definicion de statement (SExp,SDecls, etc)
 -- ver imagenes lenguajesLabo2_...faltan las otras stm
--- En lenguajesLabo2_5-Sdecls faltan las otras stm, esta mal, desagrgó la lista para explicar la idea
--- tal como en la otra version , para hacer esto recoemienda usar foldm para hacer la recursion para actualizar el env. similar a lo hech9o en checkDef
--- foldm calcula un acumulador en cada pasa y lo inyecta en el paso siguiente, es asi como el env se va completando, iterarcion a iteracion
+-- En lenguajesLabo2_5-Sdecls faltan las otras stm, esta mal, desagregó la lista para explicar la idea
+-- tal como en la otra version , para hacer esto recomienda usar foldm para hacer la recursion para actualizar el env. similar a lo hech9o en checkDef
+-- foldm calcula un acumulador en cada paso y lo inyecta en el paso siguiente, es asi como el env se va completando, iteracion a iteracion
 
 
 checkStms :: Type -> Env -> [Stm] -> Err Env
