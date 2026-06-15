@@ -201,19 +201,49 @@ compileStm :: Stm -> State Env ()
 compileStm (SExp exp) = do
   compileExp exp
 
-compileStm (SDecls t ids) = undefined
+compileStm (SDecls t ids) = extendVars t ids
 
-compileStm (SInit t id exp) = undefined
+compileStm (SInit t i exp) = do
+  extendVar t i
+  compileExp exp
+  n <- lookupVar i
+  case t of
+    Type_double -> emit ("dstore " ++ show n)
+    _ -> emit ("istore " ++ show n)
 
-compileStm (SReturn exp) = undefined
+compileStm (SReturn exp) = do
+  compileExp exp
+  case exp of
+    ETyped _ Type_double -> emit "dreturn"
+    _ -> emit "ireturn"
 
-compileStm (SReturnVoid) = undefined
+compileStm SReturnVoid = emit "return"
 
-compileStm (SWhile exp stm) = undefined
+compileStm (SWhile exp stm) = do
+  lstart <- newLabel
+  lend   <- newLabel
+  emit (lstart ++ ":")
+  compileExp exp
+  emit ("ifeq " ++ lend)
+  compileStm stm
+  emit ("goto " ++ lstart)
+  emit (lend ++ ":")
 
-compileStm (SBlock stms) = undefined
+compileStm (SBlock stms) = do
+  newBlock
+  mapM_ compileStm stms
+  exitBlock
 
-compileStm (SIfElse exp stm1 stm2) = undefined
+compileStm (SIfElse exp stm1 stm2) = do
+  lelse <- newLabel
+  lend  <- newLabel
+  compileExp exp
+  emit ("ifeq " ++ lelse)
+  compileStm stm1
+  emit ("goto " ++ lend)
+  emit (lelse ++ ":")
+  compileStm stm2
+  emit (lend ++ ":")
 
 
 -- La opcion escrita respeta los niveles de compilación (program->def->stm->exp)
@@ -279,6 +309,28 @@ compileExp (ETyped (EPDecr i) Type_int) = do
   n <- lookupVar i
   emit ("iload " ++ show n)
   emit ("iinc " ++ show n ++ " -1")
+compileExp (ETyped (EDecr i) Type_double) = do
+  n <- lookupVar i
+  emit ("dload " ++ show n)
+  emit "ldc2_w 1.0"
+  emit "dsub"
+  emit ("dstore " ++ show n)
+  emit ("dload " ++ show n)
+compileExp (ETyped (EPIncr i) Type_double) = do
+  n <- lookupVar i
+  emit ("dload " ++ show n)
+  emit ("dload " ++ show n)
+  emit "ldc2_w 1.0"
+  emit "dadd"
+  emit ("dstore " ++ show n)
+compileExp (ETyped (EPDecr i) Type_double) = do
+  n <- lookupVar i
+  emit ("dload " ++ show n)
+  emit ("dload " ++ show n)
+  emit "ldc2_w 1.0"
+  emit "dsub"
+  emit ("dstore " ++ show n)
+compileExp (ETyped (EString s) Type_string) = emit ("ldc " ++ show s)
 
 compileExp (ETyped (EPlus a b) typ) = do  
   compileExp a
@@ -332,6 +384,21 @@ compileComparatorInt exp1 exp2 cmp = do
   emit "ldc 1"
   emit (lend ++ ":")
 
+compileComparatorDouble :: Exp -> Exp -> Cmp -> State Env ()
+compileComparatorDouble exp1 exp2 cmp = do
+  compileExp exp1
+  compileExp exp2
+
+  ltrue <- newLabel
+  lend  <- newLabel
+
+  emit "dcmpg"
+  emit (showDbl cmp ++ ltrue)
+  emit "ldc 0"
+  emit ("goto " ++ lend)
+  emit (ltrue ++ ":")
+  emit "ldc 1"
+  emit (lend ++ ":")
 
 -- Hints: usefull auxiliary functions for comparations compilation
 data Cmp = Equal | NEqual | Lt | Gt | Ge | Le
