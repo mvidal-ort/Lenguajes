@@ -1,0 +1,1 @@
+Generated: string01.class

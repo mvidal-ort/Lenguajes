@@ -43,7 +43,8 @@ runMake dir = do checkDirectoryExists dir
 
 runTests :: FilePath -> IO ([(FilePath,Bool)],[(FilePath,Bool)])
 runTests dir = 
-    do let prog = "cabal run ccpp"
+    --do let prog = "cabal run ccpp"
+    do let prog = "cabal run --verbose=0 ccpp"
        --checkFileExists prog
        goodProgs <- listGoodProgs
        badProgs  <- listBadProgs
@@ -53,7 +54,8 @@ runTests dir =
 
 runOneTest :: FilePath -> FilePath -> IO ([(FilePath,Bool)],[(FilePath,Bool)])
 runOneTest dir ccFile = 
-    do let prog = joinPath [dir,"cabal run ccpp"]
+    --do let prog = joinPath [dir,"cabal run ccpp"]
+    do let prog = "cabal run --verbose=0 ccpp"
        --checkFileExists prog
        --goodProgs <- listGoodProgs
        badProgs  <- listBadProgs

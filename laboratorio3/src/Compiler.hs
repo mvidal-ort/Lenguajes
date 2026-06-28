@@ -12,10 +12,10 @@ import Control.Monad
 import Control.Monad.State
 import Data.Functor.Identity
 import Data.Maybe   
-import Control.Exception (CompactionFailed)
-import Control.Monad.Accum (MonadAccum(accum))
-import GHC.IO.Encoding (CodingProgress(InvalidSequence))
-import GHC.RTS.Flags (DebugFlags(stm))
+-- import Control.Exception (CompactionFailed)
+-- import Control.Monad.Accum (MonadAccum(accum))
+-- import GHC.IO.Encoding (CodingProgress(InvalidSequence))
+-- import GHC.RTS.Flags (DebugFlags(stm))
 
 instance MonadFail Identity where
   fail = error
@@ -104,7 +104,8 @@ extendFunEnv fun funtype = modify (\env -> env { funs = Map.insert (Id fun) funt
 
 
 extendDef :: String -> Def -> State Env ()
-extendDef cls (DFun t (Id i) args stmts) = undefined
+extendDef cls (DFun t (Id i) args stmts) =
+  extendFunEnv i (funJVM i cls (map (\(ADecl ty _) -> ty) args) t)
 
 -- Besides added in type checker
 extendBuiltinDefs :: State Env ()
@@ -198,8 +199,29 @@ compileDef (DFun t (Id i) args stmts) = do
 
 compileStm :: Stm -> State Env ()
 
-compileStm (SExp exp) = do
-  compileExp exp
+compileStm (SExp (ETyped exp typ)) = do
+  compileExp (ETyped exp typ)
+  case typ of
+    Type_double -> emit "pop2"
+    Type_void   -> return ()
+    _           -> emit "pop"
+
+-- NOTA DE DISEÑO SOBRE EL BALANCE DE LA PILA DE OPERANDOS DE LA JVM:
+-- En C++, una expresión suelta seguida de un punto y coma es una sentencia válida.
+-- Al evaluar dicha expresión mediante 'compileExp', el bytecode generado deja
+-- obligatoriamente el resultado de la evaluación en el tope de la pila de la JVM.
+-- Dado que el valor de una sentencia suelta no se asigna ni se consume, es crítico
+-- limpiar la pila para evitar desbordamientos o fallos del verificador en tiempo
+-- de ejecución (java.lang.VerifyError).
+--
+-- Para ello, se desestructura el nodo 'SExp' abstrayendo directamente la expresión
+-- interna sin tipo ('exp') junto con su tipo verificado ('typ'). Dependiendo de este
+-- tipo, se emite la instrucción de descarte correspondiente:
+--   * 'pop2': Para elementos de tamaño 2 en la JVM (Type_double).
+--   * 'return ()': No se altera la pila si la expresión no produce valor (Type_void).
+--   * 'pop': Para elementos de tamaño 1 (Type_int, Type_bool y Type_string).
+-- ============================================================================
+
 
 compileStm (SDecls t ids) = extendVars t ids
 
@@ -209,13 +231,15 @@ compileStm (SInit t i exp) = do
   n <- lookupVar i
   case t of
     Type_double -> emit ("dstore " ++ show n)
-    _ -> emit ("istore " ++ show n)
+    Type_string -> emit ("astore " ++ show n)
+    _           -> emit ("istore " ++ show n)
 
 compileStm (SReturn exp) = do
   compileExp exp
   case exp of
     ETyped _ Type_double -> emit "dreturn"
-    _ -> emit "ireturn"
+    ETyped _ Type_string -> emit "areturn"
+    _                    -> emit "ireturn"
 
 compileStm SReturnVoid = emit "return"
 
@@ -266,7 +290,7 @@ compileStm (SIfElse exp stm1 stm2) = do
 --   compileStm stm
 --   emit ("goto" ++  test)
 --   emit (end ++ ":")
-compileStm stm = undefined
+
 
 compileExp :: Exp -> State Env ()
 compileExp (ETyped ETrue Type_bool) = emit "ldc 1"
@@ -279,6 +303,12 @@ compileExp (ETyped (EId i) Type_int) = do
 compileExp (ETyped (EId i) Type_double) = do
   n <- lookupVar i
   emit ("dload " ++ show n)
+compileExp (ETyped (EId i) Type_bool) = do
+  n <- lookupVar i
+  emit ("iload " ++ show n)
+compileExp (ETyped (EId i) Type_string) = do
+  n <- lookupVar i
+  emit ("aload " ++ show n)
 compileExp (ETyped (EApp f exps) _) = do
   mapM_ compileExp exps
   call <- lookupFun f
@@ -293,6 +323,18 @@ compileExp (ETyped (EAss i e) Type_double) = do
   n <- lookupVar i
   emit ("dstore " ++ show n)
   emit ("dload " ++ show n)
+compileExp (ETyped (EAss i e) Type_bool) = do
+  compileExp e
+  n <- lookupVar i
+  emit ("istore " ++ show n)
+  emit ("iload " ++ show n)
+compileExp (ETyped (EAss i e) Type_string) = do
+  compileExp e
+  n <- lookupVar i
+  emit ("astore " ++ show n)
+  emit ("aload " ++ show n)
+
+
 compileExp (ETyped (EIncr i) Type_int) = do
   n <- lookupVar i
   emit ("iinc " ++ show n ++ " 1")
@@ -359,15 +401,66 @@ compileExp (ETyped (EDiv a b) typ) = do
   case typ of
     Type_int    -> emit "idiv"
     Type_double -> emit "ddiv"
+
+
+-- Menor que
+compileExp (ETyped (ELt a@(ETyped _ Type_double) b) Type_bool) = compileComparatorDouble a b Lt
 compileExp (ETyped (ELt a b) Type_bool) = compileComparatorInt a b Lt
+-- Mayor que
+compileExp (ETyped (EGt a@(ETyped _ Type_double) b) Type_bool) = compileComparatorDouble a b Gt
 compileExp (ETyped (EGt a b) Type_bool) = compileComparatorInt a b Gt
+-- Menor o igual 
+compileExp (ETyped (ELtEq a@(ETyped _ Type_double) b) Type_bool) = compileComparatorDouble a b Le
 compileExp (ETyped (ELtEq a b) Type_bool) = compileComparatorInt a b Le
+-- Mayor o igual 
+compileExp (ETyped (EGtEq a@(ETyped _ Type_double) b) Type_bool) = compileComparatorDouble a b Ge
 compileExp (ETyped (EGtEq a b) Type_bool) = compileComparatorInt a b Ge
+-- Igual
+compileExp (ETyped (EEq a@(ETyped _ Type_double) b) Type_bool) = compileComparatorDouble a b Equal
 compileExp (ETyped (EEq a b) Type_bool) = compileComparatorInt a b Equal
+-- Distinto 
+compileExp (ETyped (ENEq a@(ETyped _ Type_double) b) Type_bool) = compileComparatorDouble a b NEqual
 compileExp (ETyped (ENEq a b) Type_bool) = compileComparatorInt a b NEqual
 
+-- En estos casos de comparacion; compileExp (ETyped (ELt a b) Type_double) no tiene sentido 
+-- porque nunca va a ser un Type_double. Ese type hace referencia al tipo del resultado de la comparación. 
+-- Siempre es bool, y lo que hay que hacer es preguntar por los tipos de los operandos. 
+-- Basta que sea solo el primero porque el typechecker ya garantiza que son el mismo tipo. 
+-- Ademas, solo es necesario distinguir el tipo double del operando y usar compileComparatorDouble; 
+-- si no es double usa la otra regla con compileComparatoInt, que es válido tanto para int como para bool 
 
-compileExp _ = undefined
+compileExp (ETyped (EIncr i) Type_double) = do
+  n <- lookupVar i
+  emit ("dload " ++ show n)
+  emit "ldc2_w 1.0"
+  emit "dadd"
+  emit ("dstore " ++ show n)
+  emit ("dload " ++ show n)
+compileExp (ETyped (EAnd exp1 exp2) Type_bool) = do
+  lfalse <- newLabel
+  lend   <- newLabel
+  compileExp exp1
+  emit ("ifeq " ++ lfalse)
+  compileExp exp2
+  emit ("ifeq " ++ lfalse)
+  emit "ldc 1"
+  emit ("goto " ++ lend)
+  emit (lfalse ++ ":")
+  emit "ldc 0"
+  emit (lend ++ ":")
+compileExp (ETyped (EOr exp1 exp2) Type_bool) = do
+  ltrue <- newLabel
+  lend  <- newLabel
+  compileExp exp1
+  emit ("ifne " ++ ltrue)
+  compileExp exp2
+  emit ("ifne " ++ ltrue)
+  emit "ldc 0"
+  emit ("goto " ++ lend)
+  emit (ltrue ++ ":")
+  emit "ldc 1"
+  emit (lend ++ ":")
+
 
 compileComparatorInt :: Exp -> Exp -> Cmp -> State Env ()
 compileComparatorInt exp1 exp2 cmp = do
