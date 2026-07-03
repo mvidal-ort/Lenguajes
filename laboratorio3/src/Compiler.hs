@@ -1,3 +1,4 @@
+-- Martin Vidal 68694
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module Compiler where
 
